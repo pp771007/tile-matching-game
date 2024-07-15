@@ -77,8 +77,8 @@
             createjs.Ticker.addEventListener("tick", tick);
 			createjs.Sound.registerSound("sounds/change.mp3", "change");
 			// 使用 for 迴圈註冊音效
-			for (let i = 1; i <= 10; i++) {
-				createjs.Sound.registerSound(`sounds/c${i}.mp3`, `c${i}`);
+			for (let i = 1; i <= 8; i++) {
+				createjs.Sound.registerSound(`sounds/combo${i}.mp3`, `combo${i}`);
 			}
         }
 
@@ -318,8 +318,9 @@
         function animateRemoval(matches) {
             combo++;
 			
-			var soundId = combo >= 10 ? 10 : combo;
-			createjs.Sound.play(`c${soundId}`);
+            let t = (combo-1) % 16; // 週期為 16
+            let soundId = t < 8 ? t + 1 : 16 - t;
+			createjs.Sound.play(`combo${soundId}`);
 			
             if (combo > maxCombo) {
                 maxCombo = combo;
