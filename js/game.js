@@ -1,7 +1,7 @@
 let stage, orbContainer, aquariumContainer;
 let GRID_SIZE_X = 6;
 let GRID_SIZE_Y = 5;
-let grid = [], score = 0, combo = 0, maxCombo = 0, cellSize = 80;
+let grid = [], score = 0, combo = 0, cellSize = 80;
 let draggingOrb = null, startX, startY;
 let gameActive = true;
 let aquariumSize, orbSize;
@@ -33,9 +33,7 @@ function init() {
 
 function loadGameData() {
     score = parseInt(localStorage.getItem('score')) || 0;
-    maxCombo = parseInt(localStorage.getItem('maxCombo')) || 0;
     document.getElementById('score').textContent = `分數: ${score}`;
-    document.getElementById('maxCombo').textContent = `最大 Combo: ${maxCombo}`;
 }
 
 function saveGameData() {
@@ -404,11 +402,6 @@ function animateRemoval(matches) {
     let soundId = t < 8 ? t + 1 : 16 - t;
     createjs.Sound.play(`combo${soundId}`);
 
-    if (combo > maxCombo) {
-        maxCombo = combo;
-        document.getElementById('maxCombo').textContent = `最大 Combo: ${maxCombo}`;
-        saveGameData();
-    }
     document.getElementById('combo').textContent = `Combo: ${combo}`;
     document.getElementById('combo').style.fontSize = `${24 + combo * 3}px`;
 
