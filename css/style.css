@@ -18,6 +18,7 @@ body {
     text-align: center;
     color: white;
     font-size: 24px;
+    pointer-events: none;
 }
 
 #combo {
@@ -27,4 +28,5 @@ body {
     text-align: center;
     color: white;
     font-size: 24px;
+    pointer-events: none;
 }

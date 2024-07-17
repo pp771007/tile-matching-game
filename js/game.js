@@ -38,13 +38,12 @@ function loadGameData() {
 
 function saveGameData() {
     localStorage.setItem('score', score);
-    localStorage.setItem('maxCombo', maxCombo);
 }
 
 function resizeCanvas() {
     let gameCanvas = document.getElementById("gameCanvas");
-    gameCanvas.width = window.innerWidth;
-    gameCanvas.height = window.innerHeight;
+    gameCanvas.width = window.innerWidth - 10;
+    gameCanvas.height = window.innerHeight - 10;
 
     let isLandscape = window.innerWidth > window.innerHeight;
 
