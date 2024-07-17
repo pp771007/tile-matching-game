@@ -1,25 +1,31 @@
-
-const GRID_SIZE_X = 6;
-const GRID_SIZE_Y = 5;
-let stage, grid = [], score = 0, combo = 0, maxCombo = 0, cellSize = 80;
+let stage, orbContainer, aquariumContainer;
+let GRID_SIZE_X = 6;
+let GRID_SIZE_Y = 5;
+let grid = [], score = 0, combo = 0, maxCombo = 0, cellSize = 80;
 let draggingOrb = null, startX, startY;
 let gameActive = true;
+let aquariumSize, orbSize;
 
 function init() {
     stage = new createjs.Stage("gameCanvas");
     createjs.Touch.enable(stage);
     stage.enableMouseOver();
 
+    orbContainer = new createjs.Container();
+    aquariumContainer = new createjs.Container();
+    stage.addChild(aquariumContainer);
+    stage.addChild(orbContainer);
+
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
     loadGameData();
     createGrid();
+    createAquarium();
     createjs.Ticker.framerate = 60;
     createjs.Ticker.timingMode = createjs.Ticker.RAF;
     createjs.Ticker.addEventListener("tick", tick);
     createjs.Sound.registerSound("sounds/change.mp3", "change");
-    // 使用 for 迴圈註冊音效
     for (let i = 1; i <= 8; i++) {
         createjs.Sound.registerSound(`sounds/combo${i}.mp3`, `combo${i}`);
     }
@@ -38,14 +44,128 @@ function saveGameData() {
 }
 
 function resizeCanvas() {
-    cellSize = Math.min(100, (window.innerWidth - 20) / GRID_SIZE_X);
     let gameCanvas = document.getElementById("gameCanvas");
-    gameCanvas.width = window.innerWidth - 10;
-    gameCanvas.height = window.innerHeight - 10;
-    if (stage) {
-        stage.x = (gameCanvas.width - GRID_SIZE_X * cellSize) / 2;
-        stage.y = (gameCanvas.height - GRID_SIZE_Y * cellSize) / 2;
+    gameCanvas.width = window.innerWidth;
+    gameCanvas.height = window.innerHeight;
+
+    let isLandscape = window.innerWidth > window.innerHeight;
+
+    if (isLandscape) {
+        aquariumSize = { width: gameCanvas.width * 0.5, height: gameCanvas.height };
+        orbSize = { width: gameCanvas.width * 0.5, height: gameCanvas.height };
+        aquariumContainer.x = 0;
+        aquariumContainer.y = 0;
+        orbContainer.x = gameCanvas.width * 0.5;
+        orbContainer.y = 0;
+    } else {
+        aquariumSize = { width: gameCanvas.width, height: gameCanvas.height * 0.5 };
+        orbSize = { width: gameCanvas.width, height: gameCanvas.height * 0.5 };
+        aquariumContainer.x = 0;
+        aquariumContainer.y = 0;
+        orbContainer.x = 0;
+        orbContainer.y = gameCanvas.height * 0.5;
     }
+
+    cellSize = Math.min(orbSize.width / GRID_SIZE_X, orbSize.height / GRID_SIZE_Y);
+
+    // Resize and reposition orbs
+    for (let y = 0; y < GRID_SIZE_Y; y++) {
+        for (let x = 0; x < GRID_SIZE_X; x++) {
+            if (grid[y] && grid[y][x]) {
+                let orb = grid[y][x];
+                orb.x = x * cellSize + cellSize / 2;
+                orb.y = y * cellSize + cellSize / 2;
+                orb.scaleX = cellSize / orb.image.width;
+                orb.scaleY = cellSize / orb.image.height;
+            }
+        }
+    }
+
+    // Resize and reposition aquarium
+    resizeAquarium(aquariumSize.width, aquariumSize.height);
+}
+function createAquarium() {
+    let width = aquariumSize.width;
+    let height = aquariumSize.height;
+    // Create background
+    let background = new createjs.Bitmap("images/水族/箱.jpeg");
+    background.image.onload = () => {
+        background.scaleX = width / background.image.width;
+        background.scaleY = height / background.image.height;
+        resizeAquarium(width, height);
+    };
+    aquariumContainer.addChild(background);
+
+    // Create fish
+    let fishImages = [
+        "寄居蟹.png", "小丑魚.png", "水母.png", "沙丁魚.png", "河豚.png", "河豚2.png", "海星.png", "海豚.png",
+        "海馬.png", "燈籠魚.png", "獅子魚.png", "神仙魚.png", "神仙魚2.png", "蝴蝶魚.png", "螃蟹.png", "鯊魚.png", "鯨魚.png"
+    ];
+
+    let fishCount = 5 + Math.floor(Math.random() * 4); // 5 to 8 fish
+    for (let i = 0; i < fishCount; i++) {
+        let fishImage = fishImages[Math.floor(Math.random() * fishImages.length)];
+        let fish = new createjs.Bitmap(`images/水族/${fishImage}`);
+        fish.image.onload = () => {
+            fish.scaleX = fish.scaleY = 0.1; // Adjust scale as needed
+            fish.x = Math.random() * width;
+            fish.y = Math.random() * height;
+            animateFish(fish, width, height);
+        };
+        aquariumContainer.addChild(fish);
+    }
+
+    // Create bubbles
+    for (let i = 0; i < 20; i++) {
+        createBubble(width, height);
+    }
+}
+
+function resizeAquarium(width, height) {
+    let background = aquariumContainer.getChildAt(0);
+    if (background) {
+        background.scaleX = width / background.image.width;
+        background.scaleY = height / background.image.height;
+    }
+
+    // Resize and reposition fish and bubbles
+    for (let i = 1; i < aquariumContainer.numChildren; i++) {
+        let child = aquariumContainer.getChildAt(i);
+        if (child.bubbleAnimation) {
+            child.x = Math.random() * width;
+            animateBubble(child, width, height);
+        } else {
+            child.x = Math.random() * width;
+            child.y = Math.random() * height;
+            animateFish(child, width, height);
+        }
+    }
+}
+
+function animateFish(fish, width, height) {
+    let duration = 5000 + Math.random() * 5000;
+    createjs.Tween.get(fish, { loop: true })
+        .to({ x: Math.random() * width, y: Math.random() * height }, duration, createjs.Ease.sineInOut);
+}
+
+function createBubble(width, height) {
+    let bubble = new createjs.Shape();
+    bubble.graphics.beginFill("rgba(255,255,255,0.5)").drawCircle(0, 0, 2 + Math.random() * 3);
+    bubble.x = Math.random() * width;
+    bubble.y = height;
+    bubble.bubbleAnimation = true;
+    aquariumContainer.addChild(bubble);
+    animateBubble(bubble, width, height);
+}
+
+function animateBubble(bubble, width, height) {
+    bubble.y = height;
+    createjs.Tween.get(bubble)
+        .to({ y: -10 }, 5000 + Math.random() * 5000)
+        .call(() => {
+            bubble.x = Math.random() * width;
+            animateBubble(bubble, width, height);
+        });
 }
 
 function createGrid() {
@@ -119,7 +239,7 @@ function createOrb(x, y, init) {
             });
     });
 
-    stage.addChild(orb);
+    orbContainer.addChild(orb);
     grid[y][x] = orb;
 }
 
