@@ -22,28 +22,28 @@
         }
 
         #score {
-			width: 100%;
+            width: 100%;
             position: absolute;
             bottom: 36px;
-			text-align: center;
+            text-align: center;
             color: white;
             font-size: 24px;
         }
 
         #combo {
-			width: 100%;
-			position: absolute;
-			top: 10px;
-			text-align: center;
-			color: white;
+            width: 100%;
+            position: absolute;
+            top: 10px;
+            text-align: center;
+            color: white;
             font-size: 24px;
         }
 
         #maxCombo {
-			width: 100%;
+            width: 100%;
             position: absolute;
             bottom: 10px;
-			text-align: center;
+            text-align: center;
             color: white;
             font-size: 24px;
         }
@@ -75,11 +75,11 @@
             createjs.Ticker.framerate = 60;
             createjs.Ticker.timingMode = createjs.Ticker.RAF;
             createjs.Ticker.addEventListener("tick", tick);
-			createjs.Sound.registerSound("sounds/change.mp3", "change");
-			// 使用 for 迴圈註冊音效
-			for (let i = 1; i <= 8; i++) {
-				createjs.Sound.registerSound(`sounds/combo${i}.mp3`, `combo${i}`);
-			}
+            createjs.Sound.registerSound("sounds/change.mp3", "change");
+            // 使用 for 迴圈註冊音效
+            for (let i = 1; i <= 8; i++) {
+                createjs.Sound.registerSound(`sounds/combo${i}.mp3`, `combo${i}`);
+            }
         }
 
         function loadGameData() {
@@ -124,7 +124,7 @@
                 imageIndex = Math.floor(Math.random() * IMAGES.length);
                 image = `images/${IMAGES[imageIndex]}`;
             } while (init && causesMatch(x, y, imageIndex)); // 檢查是否會造成可消除情況
-            
+
             const orb = new createjs.Bitmap(image);
             orb.image.onload = () => {
                 // 確保圖片已經加載完成後才設置屬性
@@ -211,78 +211,97 @@
 
             grid[y1][x1] = orb2;
             grid[y2][x2] = orb1;
-			
-			createjs.Sound.play("change");
+
+            createjs.Sound.play("change");
         }
 
         function checkMatches() {
-            let matches = [];
-            let matchGroups = [];
+            let matches = []; // 儲存所有找到的匹配
+            let matchGroups = []; // 儲存合併後的匹配組
 
-            // Check horizontal matches
+            // 檢查水平匹配
             for (let y = 0; y < GRID_SIZE_Y; y++) {
-                let count = 1;
-                let color = grid[y][0].imageIndex;
-                let matchGroup = [{ x: 0, y: y }];
+                let count = 1; // 連續相同顏色的計數
+                let color = grid[y][0].imageIndex; // 當前檢查的顏色
+                let matchGroup = [{ x: 0, y: y, imageIndex: color }]; // 當前匹配的格子組
                 for (let x = 1; x < GRID_SIZE_X; x++) {
-                    if (grid[y][x].imageIndex === color) {
+                    if (grid[y][x].imageIndex === color) { // 如果顏色相同，增加計數
                         count++;
-                        matchGroup.push({ x: x, y: y });
+                        matchGroup.push({ x: x, y: y, imageIndex: color }); // 將格子加入匹配組
                     } else {
-                        if (count >= 3) {
+                        if (count >= 3) { // 如果連續的格子數量大於等於3，加入匹配
                             matches.push(matchGroup.slice());
                         }
-                        count = 1;
-                        color = grid[y][x].imageIndex;
-                        matchGroup = [{ x: x, y: y }];
+                        count = 1; // 重置計數
+                        color = grid[y][x].imageIndex; // 更新顏色
+                        matchGroup = [{ x: x, y: y, imageIndex: color }]; // 重置匹配組
                     }
                 }
-                if (count >= 3) {
+                if (count >= 3) { // 檢查最後一組匹配
                     matches.push(matchGroup);
                 }
             }
 
-            // Check vertical matches
+            // 檢查垂直匹配
             for (let x = 0; x < GRID_SIZE_X; x++) {
-                let count = 1;
-                let color = grid[0][x].imageIndex;
-                let matchGroup = [{ x: x, y: 0 }];
+                let count = 1; // 連續相同顏色的計數
+                let color = grid[0][x].imageIndex; // 當前檢查的顏色
+                let matchGroup = [{ x: x, y: 0, imageIndex: color }]; // 當前匹配的格子組
                 for (let y = 1; y < GRID_SIZE_Y; y++) {
-                    if (grid[y][x].imageIndex === color) {
+                    if (grid[y][x].imageIndex === color) { // 如果顏色相同，增加計數
                         count++;
-                        matchGroup.push({ x: x, y: y });
+                        matchGroup.push({ x: x, y: y, imageIndex: color }); // 將格子加入匹配組
                     } else {
-                        if (count >= 3) {
+                        if (count >= 3) { // 如果連續的格子數量大於等於3，加入匹配
                             matches.push(matchGroup.slice());
                         }
-                        count = 1;
-                        color = grid[y][x].imageIndex;
-                        matchGroup = [{ x: x, y: y }];
+                        count = 1; // 重置計數
+                        color = grid[y][x].imageIndex; // 更新顏色
+                        matchGroup = [{ x: x, y: y, imageIndex: color }]; // 重置匹配組
                     }
                 }
-                if (count >= 3) {
+                if (count >= 3) { // 檢查最後一組匹配
                     matches.push(matchGroup);
                 }
             }
 
-            // Merge overlapping matches to account for T shapes
+            // 合併重疊的匹配以處理T形和ㄈ字形匹配
             for (let match of matches) {
-                let added = false;
+                let added = false; // 標記是否已合併
                 for (let group of matchGroups) {
-                    if (group.some(g => match.some(m => m.x === g.x && m.y === g.y))) {
-                        group.push(...match.filter(m => !group.some(g => g.x === m.x && g.y === m.y)));
-                        added = true;
+                    // 檢查是否有重疊或相鄰且顏色相同
+                    if (group.some(g => match.some(m => m.x === g.x && m.y === g.y)) ||
+                        group.some(g => match.some(m => (Math.abs(m.x - g.x) <= 1 && Math.abs(m.y - g.y) <= 1 && m.imageIndex === g.imageIndex)))) {
+                        group.push(...match.filter(m => !group.some(g => g.x === m.x && g.y === m.y))); // 合併匹配
+                        added = true; // 更新標記
                         break;
                     }
                 }
-                if (!added) {
+                if (!added) { // 如果沒有合併，直接加入匹配組
                     matchGroups.push(match);
+                }
+            }
+
+            // 確保所有相鄰的匹配組被合併
+            let merged = true;
+            while (merged) {
+                merged = false;
+                for (let i = 0; i < matchGroups.length; i++) {
+                    for (let j = i + 1; j < matchGroups.length; j++) {
+                        if (matchGroups[i].some(g => matchGroups[j].some(m => (Math.abs(m.x - g.x) <= 1 && Math.abs(m.y - g.y) <= 1 && m.imageIndex === g.imageIndex)))) {
+                            matchGroups[i].push(...matchGroups[j].filter(m => !matchGroups[i].some(g => g.x === m.x && g.y === m.y)));
+                            matchGroups.splice(j, 1);
+                            merged = true;
+                            break;
+                        }
+                    }
+                    if (merged) break;
                 }
             }
 
             if (matchGroups.length > 0) {
                 gameActive = false; // 暫時停止移動功能
-                removeMatches(matchGroups);
+                removeMatches(matchGroups); // 移除匹配的格子
             }
         }
 
@@ -317,11 +336,11 @@
 
         function animateRemoval(matches) {
             combo++;
-			
-            let t = (combo-1) % 16; // 週期為 16
+
+            let t = (combo - 1) % 16; // 週期為 16
             let soundId = t < 8 ? t + 1 : 16 - t;
-			createjs.Sound.play(`combo${soundId}`);
-			
+            createjs.Sound.play(`combo${soundId}`);
+
             if (combo > maxCombo) {
                 maxCombo = combo;
                 document.getElementById('maxCombo').textContent = `最大 Combo: ${maxCombo}`;
