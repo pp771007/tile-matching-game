@@ -33,6 +33,15 @@ function init() {
     for (let i = 1; i <= 8; i++) {
         createjs.Sound.registerSound(`sounds/combo${i}.mp3`, `combo${i}`);
     }
+    
+    // 監聽 visibilitychange 事件
+document.addEventListener("visibilitychange", function() {
+    if (document.hidden) {
+        createjs.Ticker.paused = true;  // 暫停動畫
+    } else {
+        createjs.Ticker.paused = false; // 恢復動畫
+    }
+});
 }
 
 function loadGameData() {
