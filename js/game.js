@@ -1,3 +1,7 @@
+/*
+asset source: https://acmgame.itch.io/candy-asset
+*/
+
 let stage, orbContainer, aquariumContainer;
 let GRID_SIZE_X = 6;
 let GRID_SIZE_Y = 5;
@@ -174,7 +178,7 @@ function createGrid() {
     }
 }
 
-const IMAGES = ['orb1.png', 'orb2.png', 'orb3.png', 'orb4.png', 'orb5.png'];
+const IMAGES = ['norb1.png', 'norb2.png', 'norb3.png', 'norb4.png', 'norb5.png'];
 
 function createOrb(x, y, init) {
     let imageIndex;
