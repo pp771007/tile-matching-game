@@ -103,9 +103,8 @@ function createAquarium() {
         "海馬.png", "燈籠魚.png", "獅子魚.png", "神仙魚.png", "神仙魚2.png", "蝴蝶魚.png", "螃蟹.png", "鯊魚.png", "鯨魚.png"
     ];
 
-    let fishCount = 5 + Math.floor(Math.random() * 4); // 5 to 8 fish
-    for (let i = 0; i < fishCount; i++) {
-        let fishImage = fishImages[Math.floor(Math.random() * fishImages.length)];
+    for (let i = 0; i < fishImages.length; i++) {
+        let fishImage = fishImages[i];
         let fish = new createjs.Bitmap(`images/水族/${fishImage}`);
         fish.image.onload = () => {
             fish.scaleX = fish.scaleY = 0.1; // Adjust scale as needed
