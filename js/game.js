@@ -33,15 +33,6 @@ function init() {
     for (let i = 1; i <= 8; i++) {
         createjs.Sound.registerSound(`sounds/combo${i}.mp3`, `combo${i}`);
     }
-    
-    // 監聽 visibilitychange 事件
-document.addEventListener("visibilitychange", function() {
-    if (document.hidden) {
-        createjs.Ticker.paused = true;  // 暫停動畫
-    } else {
-        createjs.Ticker.paused = false; // 恢復動畫
-    }
-});
 }
 
 function loadGameData() {
@@ -169,13 +160,28 @@ function createBubble(width, height) {
 }
 
 function animateBubble(bubble, width, height) {
-    bubble.y = height;
-    createjs.Tween.get(bubble)
-        .to({ y: -10 }, 5000 + Math.random() * 5000)
-        .call(() => {
+    let startTime;
+    const duration = 5000 + Math.random() * 5000;
+    const startY = height;
+    const endY = -10;
+
+    function animate(currentTime) {
+        if (!startTime) startTime = currentTime;
+        const elapsedTime = currentTime - startTime;
+        const progress = Math.min(elapsedTime / duration, 1);
+
+        bubble.y = startY + (endY - startY) * progress;
+
+        if (progress < 1) {
+            requestAnimationFrame(animate);
+        } else {
             bubble.x = Math.random() * width;
-            animateBubble(bubble, width, height);
-        });
+            bubble.y = height;
+            requestAnimationFrame((time) => animateBubble(bubble, width, height));
+        }
+    }
+
+    requestAnimationFrame(animate);
 }
 
 function createGrid() {
@@ -343,8 +349,10 @@ function checkMatches() {
         let added = false; // 標記是否已合併
         for (let group of matchGroups) {
             // 檢查是否有重疊或相鄰且顏色相同
-            if (group.some(g => match.some(m => m.x === g.x && m.y === g.y)) ||
-                group.some(g => match.some(m => (Math.abs(m.x - g.x) <= 1 && Math.abs(m.y - g.y) <= 1 && m.imageIndex === g.imageIndex)))) {
+            if (group.some(g => match.some(m => (
+                (Math.abs(m.x - g.x) === 1 && m.y === g.y) ||
+                (Math.abs(m.y - g.y) === 1 && m.x === g.x)
+            ) && m.imageIndex === g.imageIndex))) {
                 group.push(...match.filter(m => !group.some(g => g.x === m.x && g.y === m.y))); // 合併匹配
                 added = true; // 更新標記
                 break;
@@ -361,7 +369,10 @@ function checkMatches() {
         merged = false;
         for (let i = 0; i < matchGroups.length; i++) {
             for (let j = i + 1; j < matchGroups.length; j++) {
-                if (matchGroups[i].some(g => matchGroups[j].some(m => (Math.abs(m.x - g.x) <= 1 && Math.abs(m.y - g.y) <= 1 && m.imageIndex === g.imageIndex)))) {
+                if (matchGroups[i].some(g => matchGroups[j].some(m => (
+                    (Math.abs(m.x - g.x) === 1 && m.y === g.y) ||
+                    (Math.abs(m.y - g.y) === 1 && m.x === g.x)
+                ) && m.imageIndex === g.imageIndex))) {
                     matchGroups[i].push(...matchGroups[j].filter(m => !matchGroups[i].some(g => g.x === m.x && g.y === m.y)));
                     matchGroups.splice(j, 1);
                     merged = true;
