@@ -5,6 +5,7 @@ let grid = [], score = 0, combo = 0, cellSize = 80;
 let draggingOrb = null, startX, startY;
 let gameActive = true;
 let aquariumSize, orbSize;
+let images;
 
 function init() {
     stage = new createjs.Stage("gameCanvas");
@@ -308,7 +309,14 @@ function animateBubble(bubble, width, height) {
     requestAnimationFrame(animate);
 }
 
+const IMAGE_GROUPS = [
+    ['1', '2', '3', '4', '5'],
+    ['6', '7', '8', '9', '10'],
+
+];
+
 function createGrid() {
+    images = IMAGE_GROUPS[Math.floor(Math.random() * IMAGE_GROUPS.length)];
     for (let y = 0; y < GRID_SIZE_Y; y++) {
         grid[y] = [];
         for (let x = 0; x < GRID_SIZE_X; x++) {
@@ -317,15 +325,13 @@ function createGrid() {
     }
 }
 
-const IMAGES = ['1.png', '2.png', '3.png', '4.png', '5.png'];
-
 function createOrb(x, y, init) {
     let imageIndex;
     let image;
 
     do {
-        imageIndex = Math.floor(Math.random() * IMAGES.length);
-        image = `images/珠/${IMAGES[imageIndex]}`;
+        imageIndex = Math.floor(Math.random() * images.length);
+        image = `images/珠/${images[imageIndex]}.png`;
     } while (init && causesMatch(x, y, imageIndex)); // 檢查是否會造成可消除情況
 
     const orb = new createjs.Bitmap(image);
