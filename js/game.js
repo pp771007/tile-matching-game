@@ -67,6 +67,15 @@ function resizeCanvas() {
         orbContainer.y = gameCanvas.height * 0.5;
     }
 
+    // 創建一個遮罩矩形，大小與aquariumContainer一致
+    var mask = new createjs.Shape();
+    mask.graphics.drawRect(0, 0, aquariumSize.width, aquariumSize.height);
+    mask.x = aquariumContainer.x;
+    mask.y = aquariumContainer.y;
+
+    // 將遮罩應用到aquariumContainer上
+    aquariumContainer.mask = mask;
+
     cellSize = Math.min(orbSize.width / GRID_SIZE_X, orbSize.height / GRID_SIZE_Y);
 
     // Resize and reposition orbs
@@ -88,6 +97,7 @@ function resizeCanvas() {
 function createAquarium() {
     let width = aquariumSize.width;
     let height = aquariumSize.height;
+    console.log(height)
     // Create background
     let background = new createjs.Bitmap("images/水族/箱.jpeg");
     background.image.onload = () => {
@@ -97,22 +107,55 @@ function createAquarium() {
     };
     aquariumContainer.addChild(background);
 
-    // Create fish
-    let fishImages = [
-        "寄居蟹.png", "小丑魚.png", "水母.png", "沙丁魚.png", "河豚.png", "河豚2.png", "海星.png", "海豚.png",
-        "海馬.png", "燈籠魚.png", "獅子魚.png", "神仙魚.png", "神仙魚2.png", "蝴蝶魚.png", "螃蟹.png", "鯊魚.png", "鯨魚.png"
+    let aquariumFishData = [
+        { name: "寄居蟹.png", position: "底", facing: "右", speed: 0.5 },
+        { name: "小丑魚.png", position: "中", facing: "左", speed: 1.5 },
+        { name: "水母.png", position: "上", facing: "左", speed: 0.8 },
+        { name: "沙丁魚.png", position: "全", facing: "左", speed: 2 },
+        { name: "河豚.png", position: "中", facing: "左", speed: 1 },
+        { name: "河豚2.png", position: "中", facing: "左", speed: 1.2 },
+        { name: "海星.png", position: "底", facing: "左", speed: 0.3 },
+        { name: "海豚.png", position: "上", facing: "左", speed: 2.5 },
+        { name: "海馬.png", position: "中", facing: "左", speed: 0.7 },
+        { name: "燈籠魚.png", position: "下", facing: "左", speed: 1 },
+        { name: "獅子魚.png", position: "中", facing: "左", speed: 1.3 },
+        { name: "神仙魚.png", position: "中", facing: "左", speed: 1.8 },
+        { name: "神仙魚2.png", position: "中", facing: "左", speed: 1.6 },
+        { name: "蝴蝶魚.png", position: "上", facing: "左", speed: 1.4 },
+        { name: "螃蟹.png", position: "底", facing: "左", speed: 0.6 },
+        { name: "鯊魚.png", position: "中", facing: "左", speed: 2.2 },
+        { name: "鯨魚.png", position: "中", facing: "左", speed: 1.7 }
     ];
 
-    for (let i = 0; i < fishImages.length; i++) {
-        let fishImage = fishImages[i];
-        let fish = new createjs.Bitmap(`images/水族/${fishImage}`);
+    for (let i = 0; i < aquariumFishData.length; i++) {
+        let fishData = aquariumFishData[i];
+        let fish = new createjs.Bitmap(`images/水族/${fishData.name}`);
         fish.image.onload = () => {
-            fish.scaleX = fish.scaleY = 0.1; // Adjust scale as needed
-            fish.x = Math.random() * width;
-            fish.y = Math.random() * height;
+            // Calculate scale based on aquarium width
+            // Assume we want the fish to be about 5% of the aquarium width
+            let desiredWidth = width * 0.1;
+            let scale = desiredWidth / fish.image.width;
+
+            fish.scaleX = fish.scaleY = scale;
+
+            // Set the anchor point to the center of the fish
+            fish.regX = fish.image.width / 2;
+            fish.regY = fish.image.height / 2;
+
+            fish.x = getInitialX(width);
+            fish.y = getInitialY(fishData.position, height);
+            fish.facing = fishData.facing;
+            fish.position = fishData.position;
+            fish.speed = width * 0.001 * fishData.speed;
+
+            // Set initial direction
+            if (fish.facing === "右") {
+                fish.scaleX = -Math.abs(fish.scaleX);
+            }
+
+            aquariumContainer.addChild(fish);
             animateFish(fish, width, height);
         };
-        aquariumContainer.addChild(fish);
     }
 
     // Create bubbles
@@ -142,10 +185,99 @@ function resizeAquarium(width, height) {
     }
 }
 
+function getInitialX(width) {
+    const margin = width * 0.05; // 5% margin at left and right
+    return margin + Math.random() * (width - 2 * margin);
+}
+
+function getInitialY(position, height) {
+    const topMargin = height * 0.15; // 15% margin at top
+    const bottomMargin = height * 0.10; // 10% margin at bottom
+    const availableHeight = height - topMargin - bottomMargin;
+
+    switch (position) {
+        case "上":
+            return topMargin + Math.random() * (availableHeight / 3);
+        case "中":
+            return topMargin + availableHeight / 3 + Math.random() * (availableHeight / 3);
+        case "下":
+            return topMargin + 2 * availableHeight / 3 + Math.random() * (availableHeight / 3);
+        case "底":
+            return height - bottomMargin - 50; // Assuming the fish is about 50px tall
+        case "全":
+        default:
+            return topMargin + Math.random() * availableHeight;
+    }
+}
+
 function animateFish(fish, width, height) {
-    let duration = 5000 + Math.random() * 5000;
-    createjs.Tween.get(fish, { loop: true })
-        .to({ x: Math.random() * width, y: Math.random() * height }, duration, createjs.Ease.sineInOut);
+    const topMargin = height * 0.15; // 15% margin at top
+    const bottomMargin = height * 0.10; // 10% margin at bottom
+    const horizontalMargin = width * 0.05; // 5% margin at left and right
+    const availableHeight = height - topMargin - bottomMargin;
+    const availableWidth = width - 2 * horizontalMargin;
+
+    function animate() {
+        // Move fish
+        if (fish.facing === "左") {
+            fish.x -= fish.speed;
+        } else {
+            fish.x += fish.speed;
+        }
+
+        // Check horizontal boundaries and change direction if needed
+        if (fish.x < horizontalMargin) {
+            fish.x = horizontalMargin;
+            fish.facing = "右";
+            fish.scaleX = -Math.abs(fish.scaleX);
+        } else if (fish.x > width - horizontalMargin) {
+            fish.x = width - horizontalMargin;
+            fish.facing = "左";
+            fish.scaleX = Math.abs(fish.scaleX);
+        }
+
+        // Adjust y position based on fish's assigned position
+        let minY, maxY;
+        switch (fish.position) {
+            case "上":
+                minY = topMargin;
+                maxY = topMargin + availableHeight / 3;
+                break;
+            case "中":
+                minY = topMargin + availableHeight / 3;
+                maxY = topMargin + 2 * availableHeight / 3;
+                break;
+            case "下":
+                minY = topMargin + 2 * availableHeight / 3;
+                maxY = height - bottomMargin;
+                break;
+            case "底":
+                minY = maxY = height - bottomMargin - 50; // Assuming the fish is about 50px tall
+                break;
+            case "全":
+            default:
+                minY = topMargin;
+                maxY = height - bottomMargin;
+        }
+
+        if (fish.y < minY || fish.y > maxY) {
+            fish.y = Math.max(minY, Math.min(maxY, fish.y));
+            fish.speedY = -fish.speedY;
+        }
+
+        fish.y += (fish.speedY || 0);
+
+        // Request next animation frame
+        requestAnimationFrame(animate);
+    }
+
+    // Initialize vertical speed for fish that can move vertically
+    if (fish.position !== "底") {
+        fish.speedY = (Math.random() - 0.5) * fish.speed;
+    }
+
+    // Start animation
+    animate();
 }
 
 function createBubble(width, height) {
