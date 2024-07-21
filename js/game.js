@@ -115,7 +115,7 @@ function createAquarium() {
         { name: "河豚.png", position: "中", facing: "左", speed: 1 },
         { name: "河豚2.png", position: "中", facing: "左", speed: 1.2 },
         { name: "海星.png", position: "底", facing: "左", speed: 0.3 },
-        { name: "海豚.png", position: "上", facing: "左", speed: 2.5 },
+        { name: "海豚.png", position: "上", facing: "左", speed: 1.9 },
         { name: "海馬.png", position: "中", facing: "左", speed: 0.7 },
         { name: "燈籠魚.png", position: "下", facing: "左", speed: 1 },
         { name: "獅子魚.png", position: "中", facing: "左", speed: 1.3 },
@@ -123,7 +123,7 @@ function createAquarium() {
         { name: "神仙魚2.png", position: "中", facing: "左", speed: 1.6 },
         { name: "蝴蝶魚.png", position: "上", facing: "左", speed: 1.4 },
         { name: "螃蟹.png", position: "底", facing: "左", speed: 0.6 },
-        { name: "鯊魚.png", position: "中", facing: "左", speed: 2.2 },
+        { name: "鯊魚.png", position: "中", facing: "左", speed: 1.9 },
         { name: "鯨魚.png", position: "中", facing: "左", speed: 1.7 }
     ];
 
@@ -132,7 +132,7 @@ function createAquarium() {
         let fish = new createjs.Bitmap(`images/水族/${fishData.name}`);
         fish.image.onload = () => {
             // Calculate scale based on aquarium width
-            // Assume we want the fish to be about 5% of the aquarium width
+            // Assume we want the fish to be about 10% of the aquarium width
             let desiredWidth = width * 0.1;
             let scale = desiredWidth / fish.image.width;
 
@@ -146,7 +146,7 @@ function createAquarium() {
             fish.y = getInitialY(fishData.position, height);
             fish.facing = fishData.facing;
             fish.position = fishData.position;
-            fish.speed = width * 0.001 * fishData.speed;
+            fish.speed = fishData.speed;
 
             // Set initial direction
             if (fish.facing === "右") {
@@ -216,13 +216,14 @@ function animateFish(fish, width, height) {
     const horizontalMargin = width * 0.05; // 5% margin at left and right
     const availableHeight = height - topMargin - bottomMargin;
     const availableWidth = width - 2 * horizontalMargin;
+    const move = width * 0.001 * fish.speed;
 
     function animate() {
         // Move fish
         if (fish.facing === "左") {
-            fish.x -= fish.speed;
+            fish.x -= move;
         } else {
-            fish.x += fish.speed;
+            fish.x += move;
         }
 
         // Check horizontal boundaries and change direction if needed
@@ -273,7 +274,7 @@ function animateFish(fish, width, height) {
 
     // Initialize vertical speed for fish that can move vertically
     if (fish.position !== "底") {
-        fish.speedY = (Math.random() - 0.5) * fish.speed;
+        fish.speedY = (Math.random() - 0.5) * move;
     }
 
     // Start animation
