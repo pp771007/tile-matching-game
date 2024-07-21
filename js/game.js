@@ -67,15 +67,6 @@ function resizeCanvas() {
         orbContainer.y = gameCanvas.height * 0.5;
     }
 
-    // 創建一個遮罩矩形，大小與aquariumContainer一致
-    var mask = new createjs.Shape();
-    mask.graphics.drawRect(0, 0, aquariumSize.width, aquariumSize.height);
-    mask.x = aquariumContainer.x;
-    mask.y = aquariumContainer.y;
-
-    // 將遮罩應用到aquariumContainer上
-    aquariumContainer.mask = mask;
-
     cellSize = Math.min(orbSize.width / GRID_SIZE_X, orbSize.height / GRID_SIZE_Y);
 
     // Resize and reposition orbs
@@ -97,7 +88,6 @@ function resizeCanvas() {
 function createAquarium() {
     let width = aquariumSize.width;
     let height = aquariumSize.height;
-    console.log(height)
     // Create background
     let background = new createjs.Bitmap("images/水族/箱.jpeg");
     background.image.onload = () => {
@@ -108,23 +98,23 @@ function createAquarium() {
     aquariumContainer.addChild(background);
 
     let aquariumFishData = [
-        { name: "寄居蟹.png", position: "底", facing: "右", speed: 0.5 },
-        { name: "小丑魚.png", position: "中", facing: "左", speed: 1.5 },
-        { name: "水母.png", position: "上", facing: "左", speed: 0.8 },
-        { name: "沙丁魚.png", position: "全", facing: "左", speed: 2 },
-        { name: "河豚.png", position: "中", facing: "左", speed: 1 },
-        { name: "河豚2.png", position: "中", facing: "左", speed: 1.2 },
-        { name: "海星.png", position: "底", facing: "左", speed: 0.3 },
-        { name: "海豚.png", position: "上", facing: "左", speed: 1.9 },
-        { name: "海馬.png", position: "中", facing: "左", speed: 0.7 },
-        { name: "燈籠魚.png", position: "下", facing: "左", speed: 1 },
-        { name: "獅子魚.png", position: "中", facing: "左", speed: 1.3 },
-        { name: "神仙魚.png", position: "中", facing: "左", speed: 1.8 },
-        { name: "神仙魚2.png", position: "中", facing: "左", speed: 1.6 },
-        { name: "蝴蝶魚.png", position: "上", facing: "左", speed: 1.4 },
-        { name: "螃蟹.png", position: "底", facing: "左", speed: 0.6 },
-        { name: "鯊魚.png", position: "中", facing: "左", speed: 1.9 },
-        { name: "鯨魚.png", position: "中", facing: "左", speed: 1.7 }
+        { name: "寄居蟹.png", position: "底", facing: "右", speed: 0.5, size: 0.8 },
+        { name: "小丑魚.png", position: "中", facing: "左", speed: 1.5, size: 0.9 },
+        { name: "水母.png", position: "上", facing: "左", speed: 0.8, size: 1.1 },
+        { name: "沙丁魚.png", position: "全", facing: "左", speed: 2, size: 0.85 },
+        { name: "河豚.png", position: "中", facing: "左", speed: 1, size: 1 },
+        { name: "河豚2.png", position: "中", facing: "左", speed: 1.2, size: 1.05 },
+        { name: "海星.png", position: "底", facing: "左", speed: 0.3, size: 0.9 },
+        { name: "海豚.png", position: "上", facing: "左", speed: 1.9, size: 1.2 },
+        { name: "海馬.png", position: "中", facing: "左", speed: 0.7, size: 0.85 },
+        { name: "燈籠魚.png", position: "下", facing: "左", speed: 1, size: 1 },
+        { name: "獅子魚.png", position: "中", facing: "左", speed: 1.3, size: 1 },
+        { name: "神仙魚.png", position: "中", facing: "左", speed: 1.8, size: 0.95 },
+        { name: "神仙魚2.png", position: "中", facing: "左", speed: 1.6, size: 0.95 },
+        { name: "蝴蝶魚.png", position: "上", facing: "左", speed: 1.4, size: 1 },
+        { name: "螃蟹.png", position: "底", facing: "左", speed: 0.6, size: 0.9 },
+        { name: "鯊魚.png", position: "中", facing: "左", speed: 1.9, size: 1.1 },
+        { name: "鯨魚.png", position: "中", facing: "左", speed: 1.7, size: 1.2 }
     ];
 
     for (let i = 0; i < aquariumFishData.length; i++) {
@@ -134,7 +124,7 @@ function createAquarium() {
             // Calculate scale based on aquarium width
             // Assume we want the fish to be about 10% of the aquarium width
             let desiredWidth = width * 0.1;
-            let scale = desiredWidth / fish.image.width;
+            let scale = desiredWidth / fish.image.width * fishData.size;
 
             fish.scaleX = fish.scaleY = scale;
 
@@ -148,11 +138,12 @@ function createAquarium() {
             fish.position = fishData.position;
             fish.speed = fishData.speed;
 
-            // Set initial direction
             if (fish.facing === "右") {
-                fish.scaleX = -Math.abs(fish.scaleX);
+                fish.defaultScaleX = -1;
             }
-
+            else {
+                fish.defaultScaleX = 1;
+            }
             aquariumContainer.addChild(fish);
             animateFish(fish, width, height);
         };
@@ -211,6 +202,11 @@ function getInitialY(position, height) {
 }
 
 function animateFish(fish, width, height) {
+    // 停止已有的動畫循環，避免重複加速
+    if (fish.animationFrameId) {
+        cancelAnimationFrame(fish.animationFrameId);
+    }
+
     const topMargin = height * 0.15; // 15% margin at top
     const bottomMargin = height * 0.10; // 10% margin at bottom
     const horizontalMargin = width * 0.05; // 5% margin at left and right
@@ -230,11 +226,11 @@ function animateFish(fish, width, height) {
         if (fish.x < horizontalMargin) {
             fish.x = horizontalMargin;
             fish.facing = "右";
-            fish.scaleX = -Math.abs(fish.scaleX);
-        } else if (fish.x > width - horizontalMargin) {
-            fish.x = width - horizontalMargin;
+            fish.scaleX = -Math.abs(fish.scaleX) * fish.defaultScaleX;
+        } else if (fish.x > horizontalMargin + availableWidth) {
+            fish.x = horizontalMargin + availableWidth;
             fish.facing = "左";
-            fish.scaleX = Math.abs(fish.scaleX);
+            fish.scaleX = Math.abs(fish.scaleX) * fish.defaultScaleX;
         }
 
         // Adjust y position based on fish's assigned position
@@ -269,7 +265,7 @@ function animateFish(fish, width, height) {
         fish.y += (fish.speedY || 0);
 
         // Request next animation frame
-        requestAnimationFrame(animate);
+        fish.animationFrameId = requestAnimationFrame(animate);
     }
 
     // Initialize vertical speed for fish that can move vertically
