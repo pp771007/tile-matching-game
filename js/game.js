@@ -309,14 +309,14 @@ function animateBubble(bubble, width, height) {
     requestAnimationFrame(animate);
 }
 
-const IMAGE_GROUPS = [
+const OBR_IMAGE_GROUPS = [
     ['1', '2', '3', '4', '5'],
-    ['6', '7', '8', '9', '10'],
+    // ['6', '7', '8', '9', '10'],
 
 ];
 
 function createGrid() {
-    images = IMAGE_GROUPS[Math.floor(Math.random() * IMAGE_GROUPS.length)];
+    orbImages = OBR_IMAGE_GROUPS[Math.floor(Math.random() * OBR_IMAGE_GROUPS.length)];
     for (let y = 0; y < GRID_SIZE_Y; y++) {
         grid[y] = [];
         for (let x = 0; x < GRID_SIZE_X; x++) {
@@ -330,8 +330,8 @@ function createOrb(x, y, init) {
     let image;
 
     do {
-        imageIndex = Math.floor(Math.random() * images.length);
-        image = `images/珠/${images[imageIndex]}.png`;
+        imageIndex = Math.floor(Math.random() * orbImages.length);
+        image = `images/珠/${orbImages[imageIndex]}.png`;
     } while (init && causesMatch(x, y, imageIndex)); // 檢查是否會造成可消除情況
 
     const orb = new createjs.Bitmap(image);
