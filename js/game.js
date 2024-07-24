@@ -389,6 +389,7 @@ function createOrb(x, y, init) {
 
     orb.on("mousedown", function (evt) {
         if (!gameActive) return;
+        if (draggingOrb) return;
         draggingOrb = this;
         startX = Math.floor(this.x / cellSize);
         startY = Math.floor(this.y / cellSize);
