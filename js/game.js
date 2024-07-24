@@ -225,7 +225,7 @@ function animateFish(fish, width, height) {
     const horizontalMargin = width * 0.05; // 5% margin at left and right
     const availableHeight = height - topMargin - bottomMargin;
     const availableWidth = width - 2 * horizontalMargin;
-    const move = width * 0.001 * fish.speed;
+    const move = width * 0.0008 * fish.speed;
 
     function animate() {
         // Move fish
@@ -302,16 +302,20 @@ function createBubble(width, height) {
 
 function animateBubble(bubble, width, height) {
     let startTime;
-    const duration = 5000 + Math.random() * 5000;
+    const duration = 8000 + Math.random() * 8000; // 8-16秒
     const startY = height;
-    const endY = -10;
+    const endY = 30;
+
+    function easeOutQuad(t) {
+        return t * (2 - t);
+    }
 
     function animate(currentTime) {
         if (!startTime) startTime = currentTime;
         const elapsedTime = currentTime - startTime;
         const progress = Math.min(elapsedTime / duration, 1);
 
-        bubble.y = startY + (endY - startY) * progress;
+        bubble.y = startY + (endY - startY) * easeOutQuad(progress);
 
         if (progress < 1) {
             requestAnimationFrame(animate);
