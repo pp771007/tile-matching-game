@@ -309,9 +309,10 @@ function animateBubble(bubble, width, height) {
     requestAnimationFrame(animate);
 }
 
-const OBR_IMAGE_GROUPS = [
+const IMAGE_GROUPS = [
     ['1', '2', '3', '4', '5'],
-    // ['6', '7', '8', '9', '10'],
+    //['6', '7', '8', '9', '10'],
+    //['11', '12', '13', '14', '15'],
 
 ];
 
