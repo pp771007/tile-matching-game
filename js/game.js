@@ -5,7 +5,7 @@ let grid = [], score = 0, combo = 0, cellSize = 80;
 let draggingOrb = null, startX, startY;
 let gameActive = true;
 let aquariumSize, orbSize;
-let images;
+let orbImages;
 
 function init() {
     stage = new createjs.Stage("gameCanvas");
@@ -309,15 +309,24 @@ function animateBubble(bubble, width, height) {
     requestAnimationFrame(animate);
 }
 
-const IMAGE_GROUPS = [
+const OBR_IMAGE_GROUPS = [
     ['1', '2', '3', '4', '5'],
     //['6', '7', '8', '9', '10'],
-    //['11', '12', '13', '14', '15'],
+    ['11', '12', '13', '14', '15'],
 
 ];
 
 function createGrid() {
-    orbImages = OBR_IMAGE_GROUPS[Math.floor(Math.random() * OBR_IMAGE_GROUPS.length)];
+    let currentIndex = parseInt(localStorage.getItem('currentOrbImageIndex')) || 0;
+
+    orbImages = OBR_IMAGE_GROUPS[currentIndex];
+
+    // 更新 index 為下一個
+    currentIndex = (currentIndex + 1) % OBR_IMAGE_GROUPS.length;
+
+    // 保存新的 index 到 localStorage
+    localStorage.setItem('currentOrbImageIndex', currentIndex.toString());
+
     for (let y = 0; y < GRID_SIZE_Y; y++) {
         grid[y] = [];
         for (let x = 0; x < GRID_SIZE_X; x++) {
