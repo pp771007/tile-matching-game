@@ -398,6 +398,7 @@ function createOrb(x, y, init) {
 
     orb.on("pressmove", function (evt) {
         if (!gameActive) return;
+        if (draggingOrb != this) return;
         const newX = Math.min(Math.max(evt.stageX + this.offset.x, 0), GRID_SIZE_X * cellSize - cellSize / 2);
         const newY = Math.min(Math.max(evt.stageY + this.offset.y, 0), GRID_SIZE_Y * cellSize - cellSize / 2);
         createjs.Tween.get(this, { override: true }).to({ x: newX, y: newY }, 1);
@@ -413,6 +414,7 @@ function createOrb(x, y, init) {
 
     orb.on("pressup", function (evt) {
         if (!gameActive) return;
+        if (draggingOrb != this) return;
         combo = 0;
         const finalX = Math.floor(this.x / cellSize);
         const finalY = Math.floor(this.y / cellSize);
