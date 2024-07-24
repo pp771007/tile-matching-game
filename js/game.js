@@ -1,4 +1,4 @@
-let stage, orbContainer, aquariumContainer;
+let stage, orbContainer, chessboardContainer, aquariumContainer;
 let GRID_SIZE_X = 6;
 let GRID_SIZE_Y = 5;
 let grid = [], score = 0, combo = 0, cellSize = 80;
@@ -12,9 +12,11 @@ function init() {
     createjs.Touch.enable(stage);
     stage.enableMouseOver();
 
-    orbContainer = new createjs.Container();
     aquariumContainer = new createjs.Container();
+    chessboardContainer = new createjs.Container();
+    orbContainer = new createjs.Container();
     stage.addChild(aquariumContainer);
+    orbContainer.addChild(chessboardContainer);
     stage.addChild(orbContainer);
 
     resizeCanvas();
@@ -65,6 +67,20 @@ function resizeCanvas() {
     }
 
     cellSize = Math.min(orbSize.width / GRID_SIZE_X, orbSize.height / GRID_SIZE_Y);
+
+    chessboardContainer.removeAllChildren();
+    for (let y = 0; y < GRID_SIZE_Y; y++) {
+        for (let x = 0; x < GRID_SIZE_X; x++) {
+            let cell = new createjs.Shape();
+            if ((x + y) % 2 === 0) {
+                cell.graphics.beginFill("rgba(200, 200, 200, 0.3)");
+            } else {
+                cell.graphics.beginFill("rgba(150, 150, 150, 0.3)");
+            }
+            cell.graphics.drawRect(x * cellSize, y * cellSize, cellSize, cellSize);
+            chessboardContainer.addChild(cell);
+        }
+    }
 
     // Resize and reposition orbs
     for (let y = 0; y < GRID_SIZE_Y; y++) {
@@ -318,14 +334,22 @@ const OBR_IMAGE_GROUPS = [
 
 function createGrid() {
     let currentIndex = parseInt(localStorage.getItem('currentOrbImageIndex')) || 0;
-
     orbImages = OBR_IMAGE_GROUPS[currentIndex];
-
-    // 更新 index 為下一個
     currentIndex = (currentIndex + 1) % OBR_IMAGE_GROUPS.length;
-
-    // 保存新的 index 到 localStorage
     localStorage.setItem('currentOrbImageIndex', currentIndex.toString());
+
+    for (let y = 0; y < GRID_SIZE_Y; y++) {
+        for (let x = 0; x < GRID_SIZE_X; x++) {
+            let cell = new createjs.Shape();
+            if ((x + y) % 2 === 0) {
+                cell.graphics.beginFill("rgba(200, 200, 200, 0.3)");
+            } else {
+                cell.graphics.beginFill("rgba(150, 150, 150, 0.3)");
+            }
+            cell.graphics.drawRect(x * cellSize, y * cellSize, cellSize, cellSize);
+            chessboardContainer.addChild(cell);
+        }
+    }
 
     for (let y = 0; y < GRID_SIZE_Y; y++) {
         grid[y] = [];
