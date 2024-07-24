@@ -163,7 +163,7 @@ function createAquarium() {
     }
 
     // Create bubbles
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 30; i++) {
         createBubble(width, height);
     }
 }
@@ -215,27 +215,39 @@ function getInitialY(position, height) {
 }
 
 function animateFish(fish, width, height) {
-    // 停止已有的動畫循環，避免重複加速
     if (fish.animationFrameId) {
         cancelAnimationFrame(fish.animationFrameId);
     }
 
-    const topMargin = height * 0.15; // 15% margin at top
-    const bottomMargin = height * 0.10; // 10% margin at bottom
-    const horizontalMargin = width * 0.05; // 5% margin at left and right
+    const topMargin = height * 0.15;
+    const bottomMargin = height * 0.10;
+    const horizontalMargin = width * 0.05;
     const availableHeight = height - topMargin - bottomMargin;
     const availableWidth = width - 2 * horizontalMargin;
-    const move = width * 0.0008 * fish.speed;
 
-    function animate() {
-        // Move fish
+    // 將速度轉換為每秒移動的像素數
+    const horizontalSpeed = width * 0.0008 * fish.speed * 60; // 假設原始速度是基於60FPS
+    let lastTime = 0;
+
+    function animate(currentTime) {
+        if (lastTime === 0) {
+            lastTime = currentTime;
+            fish.animationFrameId = requestAnimationFrame(animate);
+            return;
+        }
+
+        const deltaTime = (currentTime - lastTime) / 1000; // 轉換為秒
+        lastTime = currentTime;
+
+        // 移動魚
+        const move = horizontalSpeed * deltaTime;
         if (fish.facing === "左") {
             fish.x -= move;
         } else {
             fish.x += move;
         }
 
-        // Check horizontal boundaries and change direction if needed
+        // 檢查水平邊界
         if (fish.x < horizontalMargin) {
             fish.x = horizontalMargin;
             fish.facing = "右";
@@ -246,7 +258,7 @@ function animateFish(fish, width, height) {
             fish.scaleX = Math.abs(fish.scaleX) * fish.defaultScaleX;
         }
 
-        // Adjust y position based on fish's assigned position
+        // 調整 y 位置
         let minY, maxY;
         switch (fish.position) {
             case "上":
@@ -262,7 +274,7 @@ function animateFish(fish, width, height) {
                 maxY = height - bottomMargin;
                 break;
             case "底":
-                minY = maxY = height - bottomMargin - 50; // Assuming the fish is about 50px tall
+                minY = maxY = height - bottomMargin - 50;
                 break;
             case "全":
             default:
@@ -275,53 +287,57 @@ function animateFish(fish, width, height) {
             fish.speedY = -fish.speedY;
         }
 
-        fish.y += (fish.speedY || 0);
+        // 垂直移動也基於時間
+        fish.y += (fish.speedY || 0) * deltaTime;
 
-        // Request next animation frame
         fish.animationFrameId = requestAnimationFrame(animate);
     }
 
-    // Initialize vertical speed for fish that can move vertically
+    // 初始化垂直速度
     if (fish.position !== "底") {
-        fish.speedY = (Math.random() - 0.5) * move;
+        fish.speedY = (Math.random() - 0.5) * horizontalSpeed * 0.5; // 垂直速度設為水平速度的一半
     }
 
-    // Start animation
-    animate();
+    animate(performance.now());
 }
-
 function createBubble(width, height) {
     let bubble = new createjs.Shape();
-    bubble.graphics.beginFill("rgba(255,255,255,0.5)").drawCircle(0, 0, 2 + Math.random() * 3);
+    let size = 2 + Math.random() * 3;
+    bubble.graphics.beginFill("rgba(255,255,255,0.5)").drawCircle(0, 0, size);
     bubble.x = Math.random() * width;
     bubble.y = height;
     bubble.bubbleAnimation = true;
+    bubble.size = size;  // 儲存泡泡大小
     aquariumContainer.addChild(bubble);
     animateBubble(bubble, width, height);
 }
 
 function animateBubble(bubble, width, height) {
     let startTime;
-    const duration = 8000 + Math.random() * 8000; // 8-16秒
-    const startY = height;
+    const duration = bubble.size * 7000;  // 根據泡泡大小調整速度
+    const startY = height - 60;
     const endY = 30;
-
-    function easeOutQuad(t) {
-        return t * (2 - t);
-    }
+    const speed = (startY - endY) / duration; // 每毫秒上升的像素數
+    const originalX = bubble.x; // 記錄初始 x 位置
 
     function animate(currentTime) {
         if (!startTime) startTime = currentTime;
         const elapsedTime = currentTime - startTime;
-        const progress = Math.min(elapsedTime / duration, 1);
 
-        bubble.y = startY + (endY - startY) * easeOutQuad(progress);
+        // 計算垂直位置
+        bubble.y = startY - speed * elapsedTime;
 
-        if (progress < 1) {
+        // 添加非常微小的水平移動
+        const horizontalMovement = Math.sin(elapsedTime * 0.001) * 0.5;
+        bubble.x = originalX + horizontalMovement;
+
+        if (bubble.y > endY) {
             requestAnimationFrame(animate);
         } else {
+            // 重置泡泡位置
             bubble.x = Math.random() * width;
             bubble.y = height;
+            // 重新開始動畫
             requestAnimationFrame((time) => animateBubble(bubble, width, height));
         }
     }
