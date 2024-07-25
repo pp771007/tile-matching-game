@@ -87,7 +87,7 @@ function resizeCanvas() {
         }
     }
 
-    // Resize and reposition orbs
+    // 更新棋子（orbs）的位置和大小
     for (let y = 0; y < GRID_SIZE_Y; y++) {
         for (let x = 0; x < GRID_SIZE_X; x++) {
             if (grid[y] && grid[y][x]) {
@@ -184,8 +184,8 @@ function resizeAquarium(width, height) {
             child.x = Math.random() * width;
             animateBubble(child, width, height);
         } else {
-            child.x = Math.random() * width;
-            child.y = Math.random() * height;
+            child.x = getInitialX(width);
+            child.y = getInitialY(child.position, height);
             animateFish(child, width, height);
         }
     }
@@ -740,7 +740,7 @@ function createFood(x, y) {
 
         // 計算圖片尺寸
         let minSize = Math.min(aquariumSize.height, aquariumSize.width);
-        let foodSize = minSize * 0.02;
+        let foodSize = minSize * 0.04;
         food.scaleX = foodSize / foodImage.width;
         food.scaleY = foodSize / foodImage.height;
 
@@ -758,11 +758,11 @@ function createFood(x, y) {
 
         function animateFood() {
             let now = Date.now();
-            let deltaTime = (now - lastTime) / 1000; // 以秒為單位計算時間差
+            let deltaTime = (now - lastTime); // 以秒為單位計算時間差
             lastTime = now;
 
             if (!food.eaten && food.y < aquariumSize.height - aquariumSize.bottomMargin) {
-                food.y += food.fallSpeed * deltaTime; // 根據時間差計算新的y值
+                food.y += food.fallSpeed / 1000 * deltaTime; // 根據時間差計算新的y值
                 requestAnimationFrame(animateFood);
             }
         }
@@ -793,16 +793,41 @@ function findNearestFood(fish) {
 function removeFood(fish, food) {
     fish.eating = true;
     food.eaten = true;
-    createjs.Tween.get(food)
-        .to({ alpha: 0, scaleX: 0, scaleY: 0 }, 5000)
-        .call(() => {
+
+    let fishScaleX = fish.scaleX;
+    let fishScaleY = fish.scaleY;
+    let foodScaleX = food.scaleX;
+    let foodScaleY = food.scaleY;
+    let animateTime = 5000;
+    let times = 10;
+    let count = 0;
+
+    function eating() {
+        count++;
+        food.scaleX = foodScaleX * (times - count) / times;
+        food.scaleY = foodScaleY * (times - count) / times;
+
+        let fishScale = count % 2 == 1 ? 1.1 : 0.9;
+        fish.scaleX = fishScaleX * fishScale;
+        fish.scaleY = fishScaleY * fishScale;
+
+        if (food.scaleX == 0) {
             fish.eating = false;
+            fish.scaleX = fishScaleX;
+            fish.scaleY = fishScaleY;
+
             aquariumContainer.removeChild(food);
             let index = foodItems.indexOf(food);
             if (index > -1) {
                 foodItems.splice(index, 1);
             }
-        });
+        }
+        else {
+            delayedCall(eating, animateTime / times);
+        }
+    }
+
+    eating();
 }
 
 function tick(event) {
