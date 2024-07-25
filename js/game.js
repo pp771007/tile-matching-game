@@ -67,6 +67,10 @@ function resizeCanvas() {
         orbContainer.y = gameCanvas.height * 0.5;
     }
 
+    aquariumSize.topMargin = aquariumSize.height * 0.15;
+    aquariumSize.bottomMargin = aquariumSize.height * 0.16;
+    aquariumSize.horizontalMargin = aquariumSize.width * 0.05;
+
     cellSize = Math.min(orbSize.width / GRID_SIZE_X, orbSize.height / GRID_SIZE_Y);
 
     chessboardContainer.removeAllChildren();
@@ -193,8 +197,8 @@ function getInitialX(width) {
 }
 
 function getInitialY(position, height) {
-    const topMargin = height * 0.15; // 15% margin at top
-    const bottomMargin = height * 0.10; // 10% margin at bottom
+    const topMargin = aquariumSize.topMargin;
+    const bottomMargin = aquariumSize.bottomMargin;
     const availableHeight = height - topMargin - bottomMargin;
 
     switch (position) {
@@ -205,7 +209,7 @@ function getInitialY(position, height) {
         case "下":
             return topMargin + 2 * availableHeight / 3 + Math.random() * (availableHeight / 3);
         case "底":
-            return height - bottomMargin - 50; // Assuming the fish is about 50px tall
+            return height - bottomMargin;
         case "全":
         default:
             return topMargin + Math.random() * availableHeight;
@@ -217,9 +221,9 @@ function animateFish(fish, width, height) {
         cancelAnimationFrame(fish.animationFrameId);
     }
 
-    const topMargin = height * 0.15;
-    const bottomMargin = height * 0.10;
-    const horizontalMargin = width * 0.05;
+    const topMargin = aquariumSize.topMargin;
+    const bottomMargin = aquariumSize.bottomMargin;
+    const horizontalMargin = aquariumSize.horizontalMargin;
     const availableHeight = height - topMargin - bottomMargin;
     const availableWidth = width - 2 * horizontalMargin;
 
@@ -290,7 +294,7 @@ function animateFish(fish, width, height) {
                     maxY = height - bottomMargin;
                     break;
                 case "底":
-                    minY = maxY = height - bottomMargin - 50;
+                    minY = maxY = height - bottomMargin;
                     break;
                 case "全":
                 default:
@@ -307,6 +311,13 @@ function animateFish(fish, width, height) {
 
                 // 垂直移動也基於時間
                 fish.y += (fish.speedY || 0) * deltaTime * 60;
+            }
+
+            // 檢查垂直邊界
+            if (fish.y < topMargin) {
+                fish.y = minY;
+            } else if (fish.y > availableHeight) {
+                fish.y = maxY;
             }
         }
 
@@ -630,8 +641,8 @@ function animateRemoval(matches) {
     combo++;
 
     // 生成飼料
-    let foodX = aquariumSize.width * Math.random();
-    let foodY = aquariumSize.height * 0.1;
+    let foodX = aquariumSize.horizontalMargin + (aquariumSize.width - 2 * aquariumSize.horizontalMargin) * Math.random();
+    let foodY = aquariumSize.topMargin;
     createFood(foodX, foodY);
 
     let t = (combo - 1) % 16; // 週期為 16
