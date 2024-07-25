@@ -316,7 +316,7 @@ function animateFish(fish, width, height) {
             // 檢查垂直邊界
             if (fish.y < topMargin) {
                 fish.y = minY;
-            } else if (fish.y > availableHeight) {
+            } else if (fish.y > height - bottomMargin) {
                 fish.y = maxY;
             }
         }
