@@ -6,6 +6,7 @@ let draggingOrb = null, startX, startY;
 let gameActive = true;
 let aquariumSize, orbSize;
 let orbImages;
+let foodItems = [];
 
 function init() {
     stage = new createjs.Stage("gameCanvas");
@@ -111,23 +112,23 @@ function createAquarium() {
     aquariumContainer.addChild(background);
 
     let aquariumFishData = [
-        { name: "寄居蟹.png", position: "底", facing: "右", speed: 0.5, size: 0.8 },
-        { name: "小丑魚.png", position: "中", facing: "左", speed: 1.5, size: 0.9 },
-        { name: "水母.png", position: "上", facing: "左", speed: 0.8, size: 1.1 },
-        { name: "沙丁魚.png", position: "全", facing: "左", speed: 2, size: 0.85 },
-        { name: "河豚.png", position: "中", facing: "左", speed: 1, size: 1 },
-        { name: "河豚2.png", position: "中", facing: "左", speed: 1.2, size: 1.05 },
-        { name: "海星.png", position: "底", facing: "左", speed: 0.3, size: 0.9 },
-        { name: "海豚.png", position: "上", facing: "左", speed: 1.9, size: 1.2 },
-        { name: "海馬.png", position: "中", facing: "左", speed: 0.7, size: 0.85 },
-        { name: "燈籠魚.png", position: "下", facing: "左", speed: 1, size: 1 },
-        { name: "獅子魚.png", position: "中", facing: "左", speed: 1.3, size: 1 },
-        { name: "神仙魚.png", position: "中", facing: "左", speed: 1.8, size: 0.95 },
-        { name: "神仙魚2.png", position: "中", facing: "左", speed: 1.6, size: 0.95 },
-        { name: "蝴蝶魚.png", position: "上", facing: "左", speed: 1.4, size: 1 },
-        { name: "螃蟹.png", position: "底", facing: "左", speed: 0.6, size: 0.9 },
-        { name: "鯊魚.png", position: "中", facing: "左", speed: 1.9, size: 1.1 },
-        { name: "鯨魚.png", position: "中", facing: "左", speed: 1.7, size: 1.2 }
+        { name: "寄居蟹.png", position: "底", speed: 0.5, size: 0.8 },
+        { name: "小丑魚.png", position: "中", speed: 1.5, size: 0.9 },
+        { name: "水母.png", position: "上", speed: 0.8, size: 1.1 },
+        { name: "沙丁魚.png", position: "全", speed: 2, size: 0.85 },
+        { name: "河豚.png", position: "中", speed: 1, size: 1 },
+        { name: "河豚2.png", position: "中", speed: 1.2, size: 1.05 },
+        { name: "海星.png", position: "底", speed: 0.3, size: 0.9 },
+        { name: "海豚.png", position: "上", speed: 1.9, size: 1.2 },
+        { name: "海馬.png", position: "中", speed: 0.7, size: 0.85 },
+        { name: "燈籠魚.png", position: "下", speed: 1, size: 1 },
+        { name: "獅子魚.png", position: "中", speed: 1.3, size: 1 },
+        { name: "神仙魚.png", position: "中", speed: 1.8, size: 0.95 },
+        { name: "神仙魚2.png", position: "中", speed: 1.6, size: 0.95 },
+        { name: "蝴蝶魚.png", position: "上", speed: 1.4, size: 1 },
+        { name: "螃蟹.png", position: "底", speed: 0.6, size: 0.9 },
+        { name: "鯊魚.png", position: "中", speed: 1.9, size: 1.1 },
+        { name: "鯨魚.png", position: "中", speed: 1.7, size: 1.2 }
     ];
 
     for (let i = 0; i < aquariumFishData.length; i++) {
@@ -147,16 +148,13 @@ function createAquarium() {
 
             fish.x = getInitialX(width);
             fish.y = getInitialY(fishData.position, height);
-            fish.facing = fishData.facing;
+            if (Math.random() < 0.5) {
+            } else {
+                fish.scaleX = -fish.scaleX;
+            }
             fish.position = fishData.position;
             fish.speed = fishData.speed;
 
-            if (fish.facing === "右") {
-                fish.defaultScaleX = -1;
-            }
-            else {
-                fish.defaultScaleX = 1;
-            }
             aquariumContainer.addChild(fish);
             animateFish(fish, width, height);
         };
@@ -225,8 +223,7 @@ function animateFish(fish, width, height) {
     const availableHeight = height - topMargin - bottomMargin;
     const availableWidth = width - 2 * horizontalMargin;
 
-    // 將速度轉換為每秒移動的像素數
-    const horizontalSpeed = width * 0.0008 * fish.speed * 60; // 假設原始速度是基於60FPS
+    const horizontalSpeed = width * 0.0008 * fish.speed * 60;
     let lastTime = 0;
 
     function animate(currentTime) {
@@ -236,70 +233,94 @@ function animateFish(fish, width, height) {
             return;
         }
 
-        const deltaTime = (currentTime - lastTime) / 1000; // 轉換為秒
+        const deltaTime = (currentTime - lastTime) / 1000;
         lastTime = currentTime;
 
-        // 移動魚
-        const move = horizontalSpeed * deltaTime;
-        if (fish.facing === "左") {
-            fish.x -= move;
+        // 檢查是否有飼料，如果有，游向最近的飼料
+        let nearestFood = findNearestFood(fish);
+        if (nearestFood) {
+            let dx = nearestFood.x - fish.x;
+            let dy = nearestFood.y - fish.y;
+            let distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance > 5) {
+                fish.x += dx / distance * fish.speed * deltaTime * 60;
+                if (fish.position !== "底") {
+                    fish.y += dy / distance * fish.speed * deltaTime * 60;
+                }
+
+                // 調整魚的方向
+                fish.scaleX = (dx > 0) ? -Math.abs(fish.scaleX) : Math.abs(fish.scaleX);
+            } else {
+                // 魚吃掉飼料
+                removeFood(nearestFood);
+            }
         } else {
-            fish.x += move;
-        }
 
-        // 檢查水平邊界
-        if (fish.x < horizontalMargin) {
-            fish.x = horizontalMargin;
-            fish.facing = "右";
-            fish.scaleX = -Math.abs(fish.scaleX) * fish.defaultScaleX;
-        } else if (fish.x > horizontalMargin + availableWidth) {
-            fish.x = horizontalMargin + availableWidth;
-            fish.facing = "左";
-            fish.scaleX = Math.abs(fish.scaleX) * fish.defaultScaleX;
-        }
+            // 正常的左右移動
+            const move = horizontalSpeed * deltaTime;
+            if (fish.scaleX >= 0) {
+                fish.x -= move;
+            } else {
+                fish.x += move;
+            }
 
-        // 調整 y 位置
-        let minY, maxY;
-        switch (fish.position) {
-            case "上":
-                minY = topMargin;
-                maxY = topMargin + availableHeight / 3;
-                break;
-            case "中":
-                minY = topMargin + availableHeight / 3;
-                maxY = topMargin + 2 * availableHeight / 3;
-                break;
-            case "下":
-                minY = topMargin + 2 * availableHeight / 3;
-                maxY = height - bottomMargin;
-                break;
-            case "底":
-                minY = maxY = height - bottomMargin - 50;
-                break;
-            case "全":
-            default:
-                minY = topMargin;
-                maxY = height - bottomMargin;
-        }
+            // 檢查水平邊界
+            if (fish.x < horizontalMargin) {
+                fish.x = horizontalMargin;
+                fish.scaleX = -Math.abs(fish.scaleX);
+            } else if (fish.x > horizontalMargin + availableWidth) {
+                fish.x = horizontalMargin + availableWidth;
+                fish.scaleX = Math.abs(fish.scaleX);
+            }
 
-        if (fish.y < minY || fish.y > maxY) {
-            fish.y = Math.max(minY, Math.min(maxY, fish.y));
-            fish.speedY = -fish.speedY;
-        }
+            // 調整 y 位置
+            let minY, maxY;
+            switch (fish.position) {
+                case "上":
+                    minY = topMargin;
+                    maxY = topMargin + availableHeight / 3;
+                    break;
+                case "中":
+                    minY = topMargin + availableHeight / 3;
+                    maxY = topMargin + 2 * availableHeight / 3;
+                    break;
+                case "下":
+                    minY = topMargin + 2 * availableHeight / 3;
+                    maxY = height - bottomMargin;
+                    break;
+                case "底":
+                    minY = maxY = height - bottomMargin - 50;
+                    break;
+                case "全":
+                default:
+                    minY = topMargin;
+                    maxY = height - bottomMargin;
+            }
 
-        // 垂直移動也基於時間
-        fish.y += (fish.speedY || 0) * deltaTime;
+            if (fish.position !== "底") {
+                if (fish.y < minY) {
+                    fish.speedY = Math.abs(fish.speedY);
+                } else if (fish.y > maxY) {
+                    fish.speedY = -Math.abs(fish.speedY);
+                }
+
+                // 垂直移動也基於時間
+                fish.y += (fish.speedY || 0) * deltaTime * 60;
+            }
+        }
 
         fish.animationFrameId = requestAnimationFrame(animate);
     }
 
     // 初始化垂直速度
-    if (fish.position !== "底") {
-        fish.speedY = (Math.random() - 0.5) * horizontalSpeed * 0.5; // 垂直速度設為水平速度的一半
+    if (fish.position !== "底" && !fish.speedY) {
+        fish.speedY = (Math.random() - 0.5) * horizontalSpeed * 0.02;
     }
 
     animate(performance.now());
 }
+
 function createBubble(width, height) {
     let bubble = new createjs.Shape();
     let size = 2 + Math.random() * 3;
@@ -608,6 +629,11 @@ function delayedCall(callback, delay) {
 function animateRemoval(matches) {
     combo++;
 
+    // 生成飼料
+    let foodX = aquariumSize.width * Math.random();
+    let foodY = aquariumSize.height * 0.1;
+    createFood(foodX, foodY);
+
     let t = (combo - 1) % 16; // 週期為 16
     let soundId = t < 8 ? t + 1 : 16 - t;
     createjs.Sound.play(`combo${soundId}`);
@@ -673,6 +699,60 @@ function fillEmptySpaces() {
         gameActive = true;
         checkMatches();
     }
+}
+
+function createFood(x, y) {
+    let food = new createjs.Shape();
+    food.graphics.beginFill("brown").drawCircle(0, 0, 5);
+    food.x = x;
+    food.y = y;
+    food.eaten = false;
+    food.fallSpeed = 1 * Math.random();
+    aquariumContainer.addChild(food);
+    foodItems.push(food);
+
+    function animateFood() {
+        if (food.y < aquariumSize.height - 20) {
+            food.y += food.fallSpeed;
+            requestAnimationFrame(animateFood);
+        } else if (!food.eaten) {
+            setTimeout(() => removeFood(food), 5000);
+        }
+    }
+
+    requestAnimationFrame(animateFood);
+}
+
+function findNearestFood(fish) {
+    let nearestFood = null;
+    let minDistance = Infinity;
+
+    for (let food of foodItems) {
+        if (!food.eaten) {
+            let dx = food.x - fish.x;
+            let dy = food.y - fish.y;
+            let distance = Math.sqrt(dx * dx + dy * dy);
+            if (distance < minDistance) {
+                minDistance = distance;
+                nearestFood = food;
+            }
+        }
+    }
+
+    return nearestFood;
+}
+
+function removeFood(food) {
+    food.eaten = true;
+    createjs.Tween.get(food)
+        .to({ alpha: 0, scaleX: 0, scaleY: 0 }, 500)
+        .call(() => {
+            aquariumContainer.removeChild(food);
+            let index = foodItems.indexOf(food);
+            if (index > -1) {
+                foodItems.splice(index, 1);
+            }
+        });
 }
 
 function tick(event) {
