@@ -240,6 +240,11 @@ function animateFish(fish, width, height) {
         const deltaTime = (currentTime - lastTime) / 1000;
         lastTime = currentTime;
 
+        if (deltaTime > 1) {
+            fish.animationFrameId = requestAnimationFrame(animate);
+            return;
+        }
+
         // 檢查是否有飼料，如果有，游向最近的飼料
         let nearestFood = findNearestFood(fish);
         if (nearestFood) {
@@ -260,7 +265,6 @@ function animateFish(fish, width, height) {
                 removeFood(nearestFood);
             }
         } else {
-
             // 正常的左右移動
             const move = horizontalSpeed * deltaTime;
             if (fish.scaleX >= 0) {
@@ -311,13 +315,6 @@ function animateFish(fish, width, height) {
 
                 // 垂直移動也基於時間
                 fish.y += (fish.speedY || 0) * deltaTime * 60;
-            }
-
-            // 檢查垂直邊界
-            if (fish.y < topMargin) {
-                fish.y = minY;
-            } else if (fish.y > height - bottomMargin) {
-                fish.y = maxY;
             }
         }
 
@@ -421,8 +418,6 @@ function createGrid() {
     text.textBaseline = "middle";
     text.x = orbSize.width / 2;
     text.y = orbSize.height / 2;
-    console.log(text.x);
-    console.log(text.y);
     orbContainer.addChild(text);
 
     // 點擊事件處理器，點擊後移除遮罩和文字
@@ -740,12 +735,12 @@ function createFood(x, y) {
     food.x = x;
     food.y = y;
     food.eaten = false;
-    food.fallSpeed = 1 * Math.random();
+    food.fallSpeed = 0.5 + 1 * Math.random();
     aquariumContainer.addChild(food);
     foodItems.push(food);
 
     function animateFood() {
-        if (food.y < aquariumSize.height - 20) {
+        if (food.y < aquariumSize.height - aquariumSize.bottomMargin) {
             food.y += food.fallSpeed;
             requestAnimationFrame(animateFood);
         } else if (!food.eaten) {
@@ -758,7 +753,7 @@ function createFood(x, y) {
 
 function findNearestFood(fish) {
     let nearestFood = null;
-    let minDistance = Infinity;
+    let minDistance = aquariumSize.width * 0.08;
 
     for (let food of foodItems) {
         if (!food.eaten) {
