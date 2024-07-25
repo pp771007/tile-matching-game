@@ -409,6 +409,28 @@ function createGrid() {
             createOrb(x, y, true);
         }
     }
+
+    // 創建一個半透明遮罩
+    var overlay = new createjs.Shape();
+    overlay.graphics.beginFill("rgba(0, 0, 0, 0.5)").drawRect(0, 0, stage.canvas.width, stage.canvas.height);
+    orbContainer.addChild(overlay);
+
+    // 創建 "開始遊戲" 文字
+    var text = new createjs.Text("點擊開始遊戲", "36px Arial", "#FFFFFF");
+    text.textAlign = "center";
+    text.textBaseline = "middle";
+    text.x = orbSize.width / 2;
+    text.y = orbSize.height / 2;
+    console.log(text.x);
+    console.log(text.y);
+    orbContainer.addChild(text);
+
+    // 點擊事件處理器，點擊後移除遮罩和文字
+    overlay.on("click", function () {
+        orbContainer.removeChild(overlay);
+        orbContainer.removeChild(text);
+    });
+
 }
 
 function createOrb(x, y, init) {
