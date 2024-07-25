@@ -138,6 +138,7 @@ function createAquarium() {
     for (let i = 0; i < aquariumFishData.length; i++) {
         let fishData = aquariumFishData[i];
         let fish = new createjs.Bitmap(`images/水族/${fishData.name}`);
+        fish.fishAnimation = true;
         fish.image.onload = () => {
             // Calculate scale based on aquarium width
             // Assume we want the fish to be about 10% of the aquarium width
@@ -183,7 +184,7 @@ function resizeAquarium(width, height) {
         if (child.bubbleAnimation) {
             child.x = Math.random() * width;
             animateBubble(child, width, height);
-        } else {
+        } else if (child.fishAnimation) {
             child.x = getInitialX(width);
             child.y = getInitialY(child.position, height);
             animateFish(child, width, height);
@@ -754,6 +755,7 @@ function createFood(x, y) {
         aquariumContainer.addChild(food);
         foodItems.push(food);
 
+        let bottom = aquariumSize.height - aquariumSize.bottomMargin;
         let lastTime = Date.now();
 
         function animateFood() {
@@ -761,9 +763,14 @@ function createFood(x, y) {
             let deltaTime = (now - lastTime); // 以秒為單位計算時間差
             lastTime = now;
 
-            if (!food.eaten && food.y < aquariumSize.height - aquariumSize.bottomMargin) {
-                food.y += food.fallSpeed / 1000 * deltaTime; // 根據時間差計算新的y值
-                requestAnimationFrame(animateFood);
+            if (!food.eaten) {
+                if (food.y < bottom) {
+                    food.y += food.fallSpeed / 1000 * deltaTime; // 根據時間差計算新的y值
+                    requestAnimationFrame(animateFood);
+                }
+                else {
+                    food.y = bottom;
+                }
             }
         }
 
