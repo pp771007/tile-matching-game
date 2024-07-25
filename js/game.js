@@ -247,7 +247,10 @@ function animateFish(fish, width, height) {
 
         // 檢查是否有飼料，如果有，游向最近的飼料
         let nearestFood = findNearestFood(fish);
-        if (nearestFood) {
+        if (fish.eating) {
+            // 進食中
+        }
+        else if (nearestFood) {
             let dx = nearestFood.x - fish.x;
             let dy = nearestFood.y - fish.y;
             let distance = Math.sqrt(dx * dx + dy * dy);
@@ -262,7 +265,7 @@ function animateFish(fish, width, height) {
                 fish.scaleX = (dx > 0) ? -Math.abs(fish.scaleX) : Math.abs(fish.scaleX);
             } else {
                 // 魚吃掉飼料
-                removeFood(nearestFood);
+                removeFood(fish, nearestFood);
             }
         } else {
             // 正常的左右移動
@@ -758,7 +761,7 @@ function createFood(x, y) {
             let deltaTime = (now - lastTime) / 1000; // 以秒為單位計算時間差
             lastTime = now;
 
-            if (food.y < aquariumSize.height - aquariumSize.bottomMargin) {
+            if (!food.eaten && food.y < aquariumSize.height - aquariumSize.bottomMargin) {
                 food.y += food.fallSpeed * deltaTime; // 根據時間差計算新的y值
                 requestAnimationFrame(animateFood);
             }
@@ -787,11 +790,13 @@ function findNearestFood(fish) {
     return nearestFood;
 }
 
-function removeFood(food) {
+function removeFood(fish, food) {
+    fish.eating = true;
     food.eaten = true;
     createjs.Tween.get(food)
-        .to({ alpha: 0, scaleX: 0, scaleY: 0 }, 500)
+        .to({ alpha: 0, scaleX: 0, scaleY: 0 }, 5000)
         .call(() => {
+            fish.eating = false;
             aquariumContainer.removeChild(food);
             let index = foodItems.indexOf(food);
             if (index > -1) {
