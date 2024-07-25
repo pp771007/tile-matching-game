@@ -730,25 +730,42 @@ function fillEmptySpaces() {
 }
 
 function createFood(x, y) {
-    let food = new createjs.Shape();
-    food.graphics.beginFill("brown").drawCircle(0, 0, 5);
-    food.x = x;
-    food.y = y;
-    food.eaten = false;
-    food.fallSpeed = 0.5 + 1 * Math.random();
-    aquariumContainer.addChild(food);
-    foodItems.push(food);
+    let foodImage = new Image();
+    foodImage.src = "images/飼料/1.png";
+    foodImage.onload = function () {
+        let food = new createjs.Bitmap(foodImage);
 
-    function animateFood() {
-        if (food.y < aquariumSize.height - aquariumSize.bottomMargin) {
-            food.y += food.fallSpeed;
-            requestAnimationFrame(animateFood);
-        } else if (!food.eaten) {
-            setTimeout(() => removeFood(food), 5000);
+        // 計算圖片尺寸
+        let minSize = Math.min(aquariumSize.height, aquariumSize.width);
+        let foodSize = minSize * 0.02;
+        food.scaleX = foodSize / foodImage.width;
+        food.scaleY = foodSize / foodImage.height;
+
+        food.x = x;
+        food.y = y;
+        food.regX = foodImage.width / 2;
+        food.regY = foodImage.height / 2;
+        food.eaten = false;
+        food.fallSpeed = aquariumSize.height * 0.1; // 每秒掉落水族箱高度的10％
+
+        aquariumContainer.addChild(food);
+        foodItems.push(food);
+
+        let lastTime = Date.now();
+
+        function animateFood() {
+            let now = Date.now();
+            let deltaTime = (now - lastTime) / 1000; // 以秒為單位計算時間差
+            lastTime = now;
+
+            if (food.y < aquariumSize.height - aquariumSize.bottomMargin) {
+                food.y += food.fallSpeed * deltaTime; // 根據時間差計算新的y值
+                requestAnimationFrame(animateFood);
+            }
         }
-    }
 
-    requestAnimationFrame(animateFood);
+        requestAnimationFrame(animateFood);
+    };
 }
 
 function findNearestFood(fish) {
