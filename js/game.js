@@ -814,7 +814,7 @@ function removeFood(fish, food) {
         food.scaleX = foodScaleX * (times - count) / times;
         food.scaleY = foodScaleY * (times - count) / times;
 
-        let fishScale = count % 2 == 1 ? 1.1 : 0.9;
+        let fishScale = count % 2 == 1 ? 1.2 : 1;
         fish.scaleX = fishScaleX * fishScale;
         fish.scaleY = fishScaleY * fishScale;
 
