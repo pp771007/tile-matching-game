@@ -338,7 +338,7 @@ function createBubble(width, height) {
     let size = 2 + Math.random() * 3;
     bubble.graphics.beginFill("rgba(255,255,255,0.5)").drawCircle(0, 0, size);
     bubble.x = Math.random() * width;
-    bubble.y = height;
+    bubble.y = height - aquariumSize.bottomMargin;
     bubble.bubbleAnimation = true;
     bubble.size = size;  // 儲存泡泡大小
     aquariumContainer.addChild(bubble);
@@ -348,7 +348,7 @@ function createBubble(width, height) {
 function animateBubble(bubble, width, height) {
     let startTime;
     const duration = bubble.size * 7000;  // 根據泡泡大小調整速度
-    const startY = height - 60;
+    const startY = height - aquariumSize.bottomMargin;
     const endY = 30;
     const speed = (startY - endY) / duration; // 每毫秒上升的像素數
     const originalX = bubble.x; // 記錄初始 x 位置
@@ -369,7 +369,7 @@ function animateBubble(bubble, width, height) {
         } else {
             // 重置泡泡位置
             bubble.x = Math.random() * width;
-            bubble.y = height;
+            bubble.y = startY;
             // 重新開始動畫
             requestAnimationFrame((time) => animateBubble(bubble, width, height));
         }
