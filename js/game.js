@@ -8,6 +8,13 @@ let aquariumSize, orbSize;
 let orbImages;
 let foodItems = [];
 
+const OBR_IMAGE_GROUPS = [
+    ['1', '2', '3', '4', '5'],
+    ['6', '7', '8', '9', '10'],
+    ['11', '12', '13', '14', '15'],
+
+];
+
 function init() {
     stage = new createjs.Stage("gameCanvas");
     createjs.Touch.enable(stage);
@@ -25,6 +32,7 @@ function init() {
 
     loadGameData();
     createGrid();
+    createOverlay();
     createAquarium();
     createjs.Ticker.framerate = 60;
     createjs.Ticker.timingMode = createjs.Ticker.RAF;
@@ -33,6 +41,9 @@ function init() {
     for (let i = 1; i <= 8; i++) {
         createjs.Sound.registerSound(`sounds/combo${i}.mp3`, `combo${i}`);
     }
+
+    document.getElementById('settingsButton').addEventListener('click', showSettingsPage);
+    document.getElementById('settingsOverlay').addEventListener('click', handleSettingsClick);
 }
 
 function loadGameData() {
@@ -377,18 +388,9 @@ function animateBubble(bubble, width, height) {
     requestAnimationFrame(animate);
 }
 
-const OBR_IMAGE_GROUPS = [
-    ['1', '2', '3', '4', '5'],
-    //['6', '7', '8', '9', '10'],
-    ['11', '12', '13', '14', '15'],
-
-];
-
 function createGrid() {
     let currentIndex = parseInt(localStorage.getItem('currentOrbImageIndex')) || 0;
     orbImages = OBR_IMAGE_GROUPS[currentIndex];
-    currentIndex = (currentIndex + 1) % OBR_IMAGE_GROUPS.length;
-    localStorage.setItem('currentOrbImageIndex', currentIndex.toString());
 
     for (let y = 0; y < GRID_SIZE_Y; y++) {
         for (let x = 0; x < GRID_SIZE_X; x++) {
@@ -409,10 +411,13 @@ function createGrid() {
             createOrb(x, y, true);
         }
     }
+}
 
+function createOverlay() {
     // 創建一個半透明遮罩
     var overlay = new createjs.Shape();
     overlay.graphics.beginFill("rgba(0, 0, 0, 0.5)").drawRect(0, 0, stage.canvas.width, stage.canvas.height);
+    overlay.name = "startOverlay";
     orbContainer.addChild(overlay);
 
     // 創建 "開始遊戲" 文字
@@ -421,6 +426,7 @@ function createGrid() {
     text.textBaseline = "middle";
     text.x = orbSize.width / 2;
     text.y = orbSize.height / 2;
+    text.name = "startText";
     orbContainer.addChild(text);
 
     // 點擊事件處理器，點擊後移除遮罩和文字
@@ -428,7 +434,18 @@ function createGrid() {
         orbContainer.removeChild(overlay);
         orbContainer.removeChild(text);
     });
+}
 
+function removeStartOverlay() {
+    let overlay = orbContainer.getChildByName("startOverlay");
+    let text = orbContainer.getChildByName("startText");
+
+    if (overlay) {
+        orbContainer.removeChild(overlay);
+    }
+    if (text) {
+        orbContainer.removeChild(text);
+    }
 }
 
 function createOrb(x, y, init) {
@@ -834,6 +851,55 @@ function removeFood(fish, food) {
     }
 
     eating();
+}
+
+function showSettingsPage() {
+    removeStartOverlay();
+    document.getElementById('settingsOverlay').style.display = 'flex';
+    populateOrbGroups();
+}
+
+function hideSettingsPage() {
+    document.getElementById('settingsOverlay').style.display = 'none';
+}
+
+function handleSettingsClick(event) {
+    if (event.target === document.getElementById('settingsOverlay')) {
+        hideSettingsPage();
+    }
+}
+
+function populateOrbGroups() {
+    const container = document.getElementById('orbGroupsContainer');
+    container.innerHTML = '';
+    OBR_IMAGE_GROUPS.forEach((group, index) => {
+        const button = document.createElement('button');
+        button.textContent = `珠子組 ${index + 1}`;
+        button.onclick = (event) => {
+            event.stopPropagation();  // 阻止事件冒泡
+            selectOrbGroup(index);
+        };
+        container.appendChild(button);
+    });
+}
+
+function selectOrbGroup(index) {
+    localStorage.setItem('currentOrbImageIndex', index.toString());
+    resetGame();
+}
+
+function resetGame() {
+    // 清空現有的網格
+    for (let y = 0; y < GRID_SIZE_Y; y++) {
+        for (let x = 0; x < GRID_SIZE_X; x++) {
+            if (grid[y][x]) {
+                orbContainer.removeChild(grid[y][x]);
+            }
+        }
+    }
+
+    // 重新創建網格
+    createGrid();
 }
 
 function tick(event) {
