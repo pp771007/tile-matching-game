@@ -35,16 +35,20 @@ body {
     position: absolute;
     top: 10px;
     left: 10px;
-    background-color: #2196f3;
+    width: 40px;
+    height: 40px;
+    background-image: url('/images/ui/setting.png');
+    background-color: #f000;
+    background-size: cover;
+    background-repeat: no-repeat;
     border: none;
-    color: white;
-    padding: 5px 10px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
     cursor: pointer;
     border-radius: 5px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    padding: 0;
+    /* 移除內邊距 */
+    overflow: hidden;
+    /* 確保內容不會溢出 */
 }
 
 #settingsOverlay {
@@ -65,6 +69,14 @@ body {
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    margin: 20px;
+}
+
+#orbGroupsContainer {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
 }
 
 #orbGroupsContainer button {
