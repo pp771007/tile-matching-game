@@ -84,3 +84,23 @@ body {
     padding: 10px;
     font-size: 16px;
 }
+
+#autoPlayButton {
+    position: absolute;
+    top: 60px;
+    left: 10px;
+    width: 40px;
+    height: 40px;
+    background-image: url('../images/ui/auto.png');
+    background-color: #f000;
+    background-size: cover;
+    background-repeat: no-repeat;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    padding: 0;
+    /* 移除內邊距 */
+    overflow: hidden;
+    /* 確保內容不會溢出 */
+}

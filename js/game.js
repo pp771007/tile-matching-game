@@ -7,7 +7,7 @@ let gameActive = true;
 let aquariumSize, orbSize;
 let orbImages;
 let foodItems = [];
-
+let autoPlay = false;
 const OBR_IMAGE_GROUPS = [
     ['1', '2', '3', '4', '5'],
     ['6', '7', '8', '9', '10'],
@@ -44,6 +44,7 @@ function init() {
 
     document.getElementById('settingsButton').addEventListener('click', showSettingsPage);
     document.getElementById('settingsOverlay').addEventListener('click', handleSettingsClick);
+    document.getElementById('autoPlayButton').addEventListener('click', autoPlayClick);
 }
 
 function loadGameData() {
@@ -886,6 +887,11 @@ function populateOrbGroups() {
 function selectOrbGroup(index) {
     localStorage.setItem('currentOrbImageIndex', index.toString());
     resetGame();
+}
+
+function autoPlayClick() {
+    autoPlay = !autoPlay;
+    document.getElementById('autoPlayButton').style.backgroundImage = "url('images/ui/" + (autoPlay ? "play" : "auto") + ".png')";
 }
 
 function resetGame() {
