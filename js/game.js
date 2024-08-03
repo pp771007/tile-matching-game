@@ -8,6 +8,7 @@ let aquariumSize, orbSize;
 let orbImages;
 let foodItems = [];
 let autoPlay = false;
+let magicDrop = false;
 const OBR_IMAGE_GROUPS = [
     ['1', '2', '3', '4', '5'],
     ['6', '7', '8', '9', '10'],
@@ -45,6 +46,7 @@ function init() {
     document.getElementById('settingsButton').addEventListener('click', showSettingsPage);
     document.getElementById('settingsOverlay').addEventListener('click', handleSettingsClick);
     document.getElementById('autoPlayButton').addEventListener('click', autoPlayClick);
+    document.getElementById('enableMagicDrop').addEventListener('change', (e) => { magicDrop = e.target.checked; });
 }
 
 function loadGameData() {
@@ -449,12 +451,12 @@ function removeStartOverlay() {
     }
 }
 
-function createOrb(x, y, init) {
+function createOrb(x, y, init, imgIdx = null) {
     let imageIndex;
     let image;
 
     do {
-        imageIndex = Math.floor(Math.random() * orbImages.length);
+        imageIndex = imgIdx ?? Math.floor(Math.random() * orbImages.length);
         image = `images/珠/${orbImages[imageIndex]}.png`;
     } while (init && causesMatch(x, y, imageIndex)); // 檢查是否會造成可消除情況
 
@@ -725,9 +727,46 @@ function dropOrbs() {
         fillEmptySpaces();
     }
 }
-
-function fillEmptySpaces() {
-    let animated = false;
+function orbFillAble(row) {
+    var imgColors = [];
+    for (let i = 0; i < row.length; i++) {
+        if (row[i] === null) {
+            imgColors.push(null);
+            continue;
+        }
+        imgColors.push(row[i].imageIndex);
+    }
+    var unique = imgColors.filter((val, idx, arr) => {
+        return arr.indexOf(val) === idx;
+    });
+    if (unique.length >= 3) { return null; }
+    if (unique.length > 1 && !unique.includes(null)) { return null; }
+    var nonNull = unique.filter((val) => { return val != null; });
+    if (nonNull.length > 0) { return nonNull[0]; }
+    return Math.floor(Math.random() * orbImages.length);
+}
+function magicDropProcess() {
+    var animated = false;
+    for (let y = 0; y < GRID_SIZE_Y; y++) {
+        for (let x = 0; x < GRID_SIZE_X - 2; x++) {
+            var imgIdx = orbFillAble([grid[y][x], grid[y][x + 1], grid[y][x + 2]]);
+            if (imgIdx != null) {
+                for (let colIdx = x; colIdx <= x + 2; colIdx++) {
+                    if (grid[y][colIdx] === null) {
+                        createOrb(colIdx, y, false, imgIdx);
+                        grid[y][colIdx].y -= cellSize * 2;
+                        createjs.Tween.get(grid[y][colIdx]).to({ y: y * cellSize + cellSize / 2 }, 300, createjs.Ease.bounceOut);
+                        animated = true;
+                    }
+                }
+                x += 3;
+            }
+        }
+    }
+    return animated;
+}
+function seekEmptySlotAndFill() {
+    var animated = false;
     for (let x = 0; x < GRID_SIZE_X; x++) {
         for (let y = GRID_SIZE_Y - 1; y >= 0; y--) {
             if (grid[y][x] === null) {
@@ -738,6 +777,14 @@ function fillEmptySpaces() {
             }
         }
     }
+    return animated;
+}
+function fillEmptySpaces() {
+    let animated = false;
+    if (magicDrop) {
+        animated = magicDropProcess();
+    }
+    animated = seekEmptySlotAndFill() || animated;
 
     if (animated) {
         delayedCall(() => {
