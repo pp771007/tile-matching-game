@@ -653,10 +653,12 @@ function checkMatches() {
 }
 
 function removeMatches(matches) {
-    let totalMatches = matches.flat().length;
-    score += totalMatches;
-    document.getElementById('score').textContent = `分數: ${score}`;
-    saveGameData();
+    if (!magicDrop) {
+        let totalMatches = matches.flat().length;
+        score += totalMatches;
+        document.getElementById('score').textContent = `分數: ${score}`;
+        saveGameData();
+    }
 
     let delay = 0;
     for (let matchGroup of matches) {
@@ -730,12 +732,12 @@ function animateRemoval(matches) {
 
     for (let match of matches) {
         let orb = grid[match.y][match.x];
+        grid[match.y][match.x] = null;
         createjs.Tween.get(orb)
             .to({ scaleX: orb.scaleX * 1.5, scaleY: orb.scaleY * 1.5, alpha: 0.8 }, 150)
             .to({ scaleX: 0, scaleY: 0, alpha: 0 }, 200)
             .call(() => {
                 stage.removeChild(orb);
-                grid[match.y][match.x] = null;
             });
     }
 }
