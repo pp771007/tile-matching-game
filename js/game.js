@@ -29,6 +29,7 @@ function init() {
     orbContainer.addChild(chessboardContainer);
     stage.addChild(orbContainer);
 
+    createCombo();
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
@@ -36,7 +37,6 @@ function init() {
     createGrid();
     createOverlay();
     createAquarium();
-    createCombo();
     createjs.Ticker.framerate = 60;
     createjs.Ticker.timingMode = createjs.Ticker.RAF;
     createjs.Ticker.addEventListener("tick", tick);
@@ -53,8 +53,6 @@ function init() {
 
 function createCombo() {
     comboText = new createjs.Text("COMBO: 0", "24px Arial", "#FFF");
-    comboText.x = stage.canvas.width / 2;
-    comboText.y = 30;
     comboText.textAlign = "center";
     stage.addChild(comboText);
 }
@@ -90,6 +88,9 @@ function resizeCanvas() {
         orbContainer.x = 0;
         orbContainer.y = gameCanvas.height * 0.5;
     }
+
+    comboText.x = stage.canvas.width / 2;
+    comboText.y = 30;
 
     aquariumSize.topMargin = aquariumSize.height * 0.15;
     aquariumSize.bottomMargin = aquariumSize.height * 0.16;
