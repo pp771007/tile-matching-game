@@ -9,7 +9,7 @@ let orbImages;
 let foodItems = [];
 let autoPlay = false;
 let magicDrop = false;
-let comboText;
+let comboText, comboOutline, comboShadow;
 const OBR_IMAGE_GROUPS = [
     ['1', '2', '3', '4', '5'],
     ['6', '7', '8', '9', '10'],
@@ -52,6 +52,19 @@ function init() {
 }
 
 function createCombo() {
+    // 創建陰影
+    comboShadow = new createjs.Text("COMBO: 0", "bold 24px 'Bungee Spice', Arial", "#000");
+    comboShadow.textAlign = "center";
+    comboShadow.alpha = 0.5;
+    stage.addChild(comboShadow);
+
+    // 創建描邊
+    comboOutline = new createjs.Text("COMBO: 0", "bold 24px 'Bungee Spice', Arial", "#000");
+    comboOutline.textAlign = "center";
+    comboOutline.outline = 3;
+    stage.addChild(comboOutline);
+
+    // 創建主文字
     comboText = new createjs.Text("COMBO: 0", "24px Arial", "#FFF");
     comboText.textAlign = "center";
     stage.addChild(comboText);
@@ -89,6 +102,10 @@ function resizeCanvas() {
         orbContainer.y = gameCanvas.height * 0.5;
     }
 
+    comboShadow.x = stage.canvas.width / 2 + 2;
+    comboShadow.y = 30 + 2;
+    comboOutline.x = stage.canvas.width / 2;
+    comboOutline.y = 30;
     comboText.x = stage.canvas.width / 2;
     comboText.y = 30;
 
@@ -685,9 +702,16 @@ function delayedCall(callback, delay) {
 
 function increaseCombo() {
     combo++;
-    comboText.text = "COMBO: " + combo;
-    comboText.scale = 1.5;
+    let comboString = "COMBO: " + combo;
+    comboText.text = comboString;
+    comboOutline.text = comboString;
+    comboShadow.text = comboString;
+
+    comboText.scale = comboOutline.scale = comboShadow.scale = 1.5;
     createjs.Tween.get(comboText).to({ scale: 1 }, 500, createjs.Ease.elasticOut);
+    createjs.Tween.get(comboOutline).to({ scale: 1 }, 500, createjs.Ease.elasticOut);
+    createjs.Tween.get(comboShadow).to({ scale: 1 }, 500, createjs.Ease.elasticOut);
+
     createFireworks();
 }
 
@@ -882,7 +906,7 @@ function createFood(x, y) {
 
 function findNearestFood(fish) {
     let nearestFood = null;
-    let minDistance = aquariumSize.width * 0.08;
+    let minDistance = aquariumSize.width * 0.1;
 
     for (let food of foodItems) {
         if (!food.eaten) {
@@ -907,7 +931,7 @@ function removeFood(fish, food) {
     let fishScaleY = fish.scaleY;
     let foodScaleX = food.scaleX;
     let foodScaleY = food.scaleY;
-    let animateTime = 5000;
+    let animateTime = 3000;
     let times = 10;
     let count = 0;
 
