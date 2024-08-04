@@ -433,22 +433,15 @@ function createOverlay() {
     orbContainer.addChild(text);
 
     // 點擊事件處理器，點擊後移除遮罩和文字
-    overlay.on("click", function () {
-        orbContainer.removeChild(overlay);
-        orbContainer.removeChild(text);
-    });
+    document.addEventListener("click", removeStartOverlay);
+    document.addEventListener("touchstart", removeStartOverlay);
 }
 
 function removeStartOverlay() {
-    let overlay = orbContainer.getChildByName("startOverlay");
-    let text = orbContainer.getChildByName("startText");
-
-    if (overlay) {
-        orbContainer.removeChild(overlay);
-    }
-    if (text) {
-        orbContainer.removeChild(text);
-    }
+    orbContainer.removeChild(orbContainer.getChildByName("startOverlay"));
+    orbContainer.removeChild(orbContainer.getChildByName("startText"));
+    document.removeEventListener("click", removeStartOverlay);
+    document.removeEventListener("touchstart", removeStartOverlay);
 }
 
 function createOrb(x, y, init, imgIdx = null) {
@@ -902,7 +895,6 @@ function removeFood(fish, food) {
 }
 
 function showSettingsPage() {
-    removeStartOverlay();
     document.getElementById('settingsOverlay').style.display = 'flex';
     populateOrbGroups();
 }
