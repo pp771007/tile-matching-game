@@ -9,6 +9,7 @@ let orbImages;
 let foodItems = [];
 let autoPlay = false;
 let magicDrop = false;
+let comboText;
 const OBR_IMAGE_GROUPS = [
     ['1', '2', '3', '4', '5'],
     ['6', '7', '8', '9', '10'],
@@ -35,6 +36,7 @@ function init() {
     createGrid();
     createOverlay();
     createAquarium();
+    createCombo();
     createjs.Ticker.framerate = 60;
     createjs.Ticker.timingMode = createjs.Ticker.RAF;
     createjs.Ticker.addEventListener("tick", tick);
@@ -47,6 +49,14 @@ function init() {
     document.getElementById('settingsOverlay').addEventListener('click', handleSettingsClick);
     document.getElementById('autoPlayButton').addEventListener('click', autoPlayClick);
     document.getElementById('enableMagicDrop').addEventListener('change', (e) => { magicDrop = e.target.checked; });
+}
+
+function createCombo() {
+    comboText = new createjs.Text("COMBO: 0", "24px Arial", "#FFF");
+    comboText.x = stage.canvas.width / 2;
+    comboText.y = 30;
+    comboText.textAlign = "center";
+    stage.addChild(comboText);
 }
 
 function loadGameData() {
@@ -670,8 +680,43 @@ function delayedCall(callback, delay) {
     requestAnimationFrame(step);
 }
 
-function animateRemoval(matches) {
+function increaseCombo() {
     combo++;
+    comboText.text = "COMBO: " + combo;
+    comboText.scale = 1.5;
+    createjs.Tween.get(comboText).to({ scale: 1 }, 500, createjs.Ease.elasticOut);
+    createFireworks();
+}
+
+function createFireworks() {
+    for (let i = 0; i < 50; i++) {
+        let particle = new createjs.Shape();
+        let particleSize = 2 + Math.random() * 3; // 這會生成 2 到 5 之間的隨機大小
+        particle.graphics.beginFill(createjs.Graphics.getHSL(Math.random() * 360, 100, 50)).drawCircle(0, 0, particleSize);
+        particle.x = stage.canvas.width / 2;
+        particle.y = 30;
+        stage.addChild(particle);
+
+        let angle = Math.random() * Math.PI * 2;
+        let speed = 1 + Math.random() * 3;
+        let destX = particle.x + Math.cos(angle) * speed * 50;
+        let destY = particle.y + Math.sin(angle) * speed * 50;
+
+        createjs.Tween.get(particle)
+            .to({
+                x: destX,
+                y: destY,
+                alpha: 0,
+                scale: 0
+            }, 1000 + Math.random() * 500, createjs.Ease.circOut)
+            .call(() => {
+                stage.removeChild(particle);
+            });
+    }
+}
+
+function animateRemoval(matches) {
+    increaseCombo();
 
     // 生成飼料
     let foodX = aquariumSize.horizontalMargin + (aquariumSize.width - 2 * aquariumSize.horizontalMargin) * Math.random();
@@ -681,9 +726,6 @@ function animateRemoval(matches) {
     let t = (combo - 1) % 16; // 週期為 16
     let soundId = t < 8 ? t + 1 : 16 - t;
     createjs.Sound.play(`combo${soundId}`);
-
-    document.getElementById('combo').textContent = `Combo: ${combo}`;
-    document.getElementById('combo').style.fontSize = `${24 + combo * 3}px`;
 
     for (let match of matches) {
         let orb = grid[match.y][match.x];
