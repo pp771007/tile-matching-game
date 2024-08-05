@@ -752,9 +752,9 @@ function animateRemoval(matches) {
 
     let t = (combo - 1) % 16; // 週期為 16
     let soundId = t < 8 ? t + 1 : 16 - t;
-    //createjs.Sound.play(`combo${soundId}`);
+    createjs.Sound.play(`combo${soundId}`);
 
-    createjs.Sound.play(`combo${(song[(combo%song.length)])}`);
+    // createjs.Sound.play(`combo${(song[(combo%song.length)])}`); fail 沒有旋律 聽不出來
     for (let match of matches) {
         let orb = grid[match.y][match.x];
         grid[match.y][match.x] = null;
