@@ -16,7 +16,7 @@ const OBR_IMAGE_GROUPS = [
     ['11', '12', '13', '14', '15'],
     ['16', '17', '18', '19', '20'],
 ];
-
+let song = [3,3,4,5,5,4,3,2,1,1,2,3,3,2,2,3,3,4,5,5,4,3,2,1,1,2,3,2,1,1,2,2,3,1,2,3,4,3,1,2,3,4,3,2,1,2,3,1,1,3,3,4,5,5,4,3,2,1,1,2,3,2,1,1];
 function init() {
     stage = new createjs.Stage("gameCanvas");
     createjs.Touch.enable(stage);
@@ -752,6 +752,7 @@ function animateRemoval(matches) {
     let soundId = t < 8 ? t + 1 : 16 - t;
     createjs.Sound.play(`combo${soundId}`);
 
+    // createjs.Sound.play(`combo${(song[(combo%song.length)])}`); fail 沒有旋律 聽不出來
     for (let match of matches) {
         let orb = grid[match.y][match.x];
         grid[match.y][match.x] = null;
