@@ -754,7 +754,7 @@ function animateRemoval(matches) {
     let soundId = t < 8 ? t + 1 : 16 - t;
     //createjs.Sound.play(`combo${soundId}`);
 
-    createjs.Sound.play(`combo${(song[song.length%combo])}`);
+    createjs.Sound.play(`combo${(song[(combo%song.length)])}`);
     for (let match of matches) {
         let orb = grid[match.y][match.x];
         grid[match.y][match.x] = null;
