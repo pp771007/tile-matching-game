@@ -53,19 +53,19 @@ function init() {
 
 function createCombo() {
     // 創建陰影
-    comboShadow = new createjs.Text("COMBO: 0", "bold 24px 'Bungee Spice', Arial", "#000");
+    comboShadow = new createjs.Text("COMBO: 0", "24px 'Bungee Spice', Arial", "#000");
     comboShadow.textAlign = "center";
     comboShadow.alpha = 0.5;
     stage.addChild(comboShadow);
 
     // 創建描邊
-    comboOutline = new createjs.Text("COMBO: 0", "bold 24px 'Bungee Spice', Arial", "#000");
+    comboOutline = new createjs.Text("COMBO: 0", "24px 'Bungee Spice', Arial", "#000");
     comboOutline.textAlign = "center";
-    comboOutline.outline = 3;
+    comboOutline.outline = 4;
     stage.addChild(comboOutline);
 
     // 創建主文字
-    comboText = new createjs.Text("COMBO: 0", "24px Arial", "#FFF");
+    comboText = new createjs.Text("COMBO: 0", "24px 'Bungee Spice', Arial", "#FFF");
     comboText.textAlign = "center";
     stage.addChild(comboText);
 }
@@ -670,12 +670,10 @@ function checkMatches() {
 }
 
 function removeMatches(matches) {
-    if (!magicDrop) {
-        let totalMatches = matches.flat().length;
-        score += totalMatches;
-        document.getElementById('score').textContent = `分數: ${score}`;
-        saveGameData();
-    }
+    let totalMatches = matches.flat().length;
+    score += totalMatches;
+    document.getElementById('score').textContent = `分數: ${score}`;
+    saveGameData();
 
     let delay = 0;
     for (let matchGroup of matches) {
@@ -761,7 +759,7 @@ function animateRemoval(matches) {
             .to({ scaleX: orb.scaleX * 1.5, scaleY: orb.scaleY * 1.5, alpha: 0.8 }, 150)
             .to({ scaleX: 0, scaleY: 0, alpha: 0 }, 200)
             .call(() => {
-                stage.removeChild(orb);
+                orbContainer.removeChild(orb);
             });
     }
 }
