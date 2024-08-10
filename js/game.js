@@ -1,7 +1,8 @@
 let stage, orbContainer, chessboardContainer, aquariumContainer;
 let GRID_SIZE_X = 6;
 let GRID_SIZE_Y = 5;
-let grid = [], score = 0, combo = 0, cellSize = 80;
+let grid = [], combo = 0, cellSize = 80;
+let score, autoPlaySpeed;
 let draggingOrb = null, startX, startY;
 let gameActive = true;
 let aquariumSize, orbSize;
@@ -49,6 +50,7 @@ function init() {
     document.getElementById('settingsOverlay').addEventListener('click', handleSettingsClick);
     document.getElementById('autoPlayButton').addEventListener('click', autoPlayClick);
     document.getElementById('enableMagicDrop').addEventListener('change', (e) => { magicDrop = e.target.checked; });
+    document.getElementById('autoPlaySpeed').addEventListener('change', (e) => { autoPlaySpeed = parseInt(e.target.value); });
 }
 
 function createCombo() {
@@ -73,10 +75,13 @@ function createCombo() {
 function loadGameData() {
     score = parseInt(localStorage.getItem('score')) || 0;
     document.getElementById('score').textContent = `分數: ${score}`;
+    autoPlaySpeed = parseInt(localStorage.getItem('autoPlaySpeed')) || 3;
+    document.getElementById('autoPlaySpeed').value = autoPlaySpeed;
 }
 
 function saveGameData() {
     localStorage.setItem('score', score);
+    localStorage.setItem('autoPlaySpeed', autoPlaySpeed);
 }
 
 function resizeCanvas() {
@@ -674,6 +679,7 @@ function checkMatches() {
 }
 var autoPlaying = false;
 function autoPlayProcess() {
+    combo = 0;
     autoPlaying = true;
     var paths = slove(grid);
     doSwapOrbs(paths, 0);
@@ -687,9 +693,9 @@ function doSwapOrbs(paths, startIdx) {
     var startPos = paths[startIdx];
     var nextPos = paths[startIdx + 1];
     swapOrbs(startPos.x, startPos.y, nextPos.x, nextPos.y);
-    setTimeout(() => {
+    delayedCall(() => {
         doSwapOrbs(paths, startIdx + 1);
-    }, 400);
+    }, 1000 / autoPlaySpeed);
 }
 function removeMatches(matches) {
     let totalMatches = matches.flat().length;
@@ -991,6 +997,7 @@ function showSettingsPage() {
 
 function hideSettingsPage() {
     document.getElementById('settingsOverlay').style.display = 'none';
+    saveGameData();
 }
 
 function handleSettingsClick(event) {
